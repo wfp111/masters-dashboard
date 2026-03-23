@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Round Table Masters Pick'em 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Augusta Watch Party</p>
+        <h1>Round Table Masters Pick'em 2026</h1>
+        <p class="hero-subheading">Where bragging rights meet the green jacket.</p>
+        <p class="hero-text">
+          Track every roster, every swing, and the live top-four total for your group in one polished leaderboard.
+        </p>
+        <div class="hero-divider" aria-hidden="true"></div>
+        <div class="hero-meta">
+          <span class="hero-meta-item">Live Masters pool scoring</span>
+          <span class="hero-meta-item">Best 4 of 6 counts</span>
+          <span class="hero-meta-item">Updated every 5 minutes</span>
+        </div>
+      </div>
+
+      <div class="hero-panels">
+        <section class="status-card leaders-card">
+          <p class="card-label">Top 3 Leaders</p>
+          <div id="leaders-state" class="panel-feedback loading-state">Loading leaders...</div>
+          <div id="leaders-list" class="leaders-list" hidden></div>
+        </section>
+
+        <section class="status-card update-card">
+          <p class="card-label">Live Update Status</p>
+          <p class="update-time">Refreshing every 5 minutes</p>
+          <p class="update-meta">Last sync: <strong id="last-sync">Waiting for first update</strong></p>
+          <p id="refresh-note" class="refresh-note">Pulling live Masters pool data now.</p>
+        </section>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <section class="panel graph-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Momentum</p>
+            <h2>Leaderboard Progress</h2>
+          </div>
+          <span class="pill">Live position trend</span>
+        </div>
+
+        <div class="graph-card">
+          <div class="graph-header">
+            <div>
+              <h3>Live Progress Graph</h3>
+              <p>Track every participant's top-four total as it evolves from round to round.</p>
+              <div class="graph-meta">
+                <span id="graph-updated" class="graph-meta-item">Last updated: waiting for feed</span>
+                <span class="graph-meta-item refresh-chip"><span class="refresh-dot" aria-hidden="true"></span>Auto-refresh every 5 minutes</span>
+              </div>
+            </div>
+            <div id="graph-legend" class="graph-legend"></div>
+          </div>
+
+          <div class="graph-shell">
+            <div id="graph-state" class="panel-feedback loading-state">Loading chart...</div>
+            <div id="chart-wrap" class="chart-wrap" hidden>
+              <canvas id="progress-chart" aria-label="Leaderboard progress line chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel leaderboard-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Leaderboard</p>
+            <h2>Current Standings</h2>
+          </div>
+          <span class="pill">Top 4 of 6 scores count</span>
+        </div>
+
+        <div id="standings-state" class="panel-feedback loading-state">Loading standings...</div>
+        <div id="standings-table" class="leaderboard-table" role="table" aria-label="Leaderboard standings" hidden>
+          <div class="table-row table-head" role="row">
+            <span role="columnheader">Rank</span>
+            <span role="columnheader">Player</span>
+            <span role="columnheader">Top 4 Total</span>
+            <span role="columnheader">Today</span>
+            <span role="columnheader">Movement</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel roster-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Group Picks</p>
+            <h2>Roster Spotlight</h2>
+          </div>
+          <span class="pill">Six golfers per entry</span>
+        </div>
+
+        <div id="rosters-state" class="panel-feedback loading-state">Loading rosters...</div>
+        <div id="rosters-grid" class="roster-grid full-roster-grid" hidden></div>
+      </section>
+
+    </main>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
