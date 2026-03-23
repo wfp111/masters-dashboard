@@ -14,6 +14,7 @@
   <div class="page-shell">
     <header class="hero">
       <div class="hero-copy">
+        <span class="hero-frame"></span>
         <h1>Roundtable Pick'em</h1>
         <p class="hero-subheading">Masters 2026</p>
         <p class="hero-location">Augusta National Golf Club</p>
@@ -21,15 +22,15 @@
       </div>
 
       <div class="hero-panels">
+        <section class="status-card update-card">
+          <p class="card-label">Live Update</p>
+          <p class="update-meta">Last updated <strong id="last-sync">Waiting for first update</strong></p>
+        </section>
+
         <section class="status-card leaders-card">
           <p class="card-label">Top 3 Leaders</p>
           <div id="leaders-state" class="panel-feedback loading-state">Loading leaders...</div>
           <div id="leaders-list" class="leaders-list" hidden></div>
-        </section>
-
-        <section class="status-card update-card">
-          <p class="card-label">Live Update</p>
-          <p class="update-meta">Last updated <strong id="last-sync">Waiting for first update</strong></p>
         </section>
       </div>
     </header>

@@ -84,6 +84,18 @@ body::after {
   mix-blend-mode: soft-light;
 }
 
+.page-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 420px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.34), transparent 26%),
+    radial-gradient(circle at 82% 12%, rgba(215, 187, 114, 0.1), transparent 18%);
+  opacity: 0.9;
+}
+
 img,
 canvas {
   display: block;
@@ -128,6 +140,15 @@ canvas {
   display: grid;
   justify-items: center;
   text-align: center;
+}
+
+.hero-frame {
+  position: absolute;
+  inset: 14px;
+  border-radius: calc(var(--radius-xl) - 2px);
+  border: 1px solid rgba(255, 246, 222, 0.16);
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .hero-copy::before {
@@ -216,6 +237,15 @@ canvas {
   letter-spacing: 0.02em;
 }
 
+.hero-location::before {
+  content: "";
+  display: block;
+  width: 74px;
+  height: 1px;
+  margin: 0 auto 0.85rem;
+  background: linear-gradient(90deg, transparent, rgba(215, 187, 114, 0.84), transparent);
+}
+
 .hero-dates {
   margin-top: 0.22rem;
   color: rgba(255, 240, 201, 0.88);
@@ -276,12 +306,21 @@ canvas {
   grid-template-columns: 1fr;
   gap: 0.4rem;
   align-content: start;
+  position: relative;
   border-radius: 20px;
   padding: 0.88rem 0.9rem 0.92rem;
   background: rgba(255, 255, 255, 0.76);
   border: 1px solid rgba(17, 61, 37, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.leader-podium::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(185, 150, 66, 0.38), transparent);
 }
 
 .leader-podium:hover,
@@ -337,12 +376,12 @@ canvas {
     linear-gradient(90deg, rgba(215, 187, 114, 0.2), rgba(255, 255, 255, 0.84)),
     rgba(255, 255, 255, 0.78);
   border-color: rgba(185, 150, 66, 0.2);
-  box-shadow: 0 22px 44px rgba(185, 150, 66, 0.16);
-  transform: translateY(-2px);
+  box-shadow: 0 26px 50px rgba(185, 150, 66, 0.2);
+  transform: translateY(-3px);
 }
 
 .first .podium-name {
-  font-size: 1.58rem;
+  font-size: 1.72rem;
 }
 
 .first .podium-place {
@@ -351,12 +390,31 @@ canvas {
   box-shadow: 0 12px 24px rgba(185, 150, 66, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.42);
 }
 
+.first .podium-score {
+  font-size: 0.98rem;
+  color: var(--green-900);
+}
+
 .second {
-  background: linear-gradient(90deg, rgba(18, 59, 41, 0.06), rgba(255, 255, 255, 0.84));
+  background: linear-gradient(90deg, rgba(171, 178, 186, 0.18), rgba(255, 255, 255, 0.84));
+  border-color: rgba(146, 154, 164, 0.18);
 }
 
 .third {
-  background: linear-gradient(90deg, rgba(215, 187, 114, 0.08), rgba(255, 255, 255, 0.84));
+  background: linear-gradient(90deg, rgba(169, 111, 74, 0.16), rgba(255, 255, 255, 0.84));
+  border-color: rgba(145, 96, 65, 0.16);
+}
+
+.second .podium-place {
+  background: linear-gradient(180deg, #ccd2d8, #96a0ab);
+  color: #fffdf9;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.third .podium-place {
+  background: linear-gradient(180deg, #c08860, #8d5a39);
+  color: #fffaf4;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
 .update-time {
@@ -374,17 +432,19 @@ canvas {
 }
 
 .update-card {
-  padding: 0.95rem 1.1rem;
+  padding: 0.72rem 0.95rem;
+  text-align: center;
 }
 
 .update-card .card-label {
-  margin-bottom: 0.3rem;
-  font-size: 0.66rem;
-  letter-spacing: 0.18em;
+  margin-bottom: 0.18rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
 }
 
 .update-card .update-meta {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
+  line-height: 1.4;
 }
 
 .refresh-note {
@@ -488,13 +548,13 @@ canvas {
 }
 
 .graph-card {
-  padding: 1.15rem;
+  padding: 1.2rem;
   border-radius: calc(var(--radius-lg) + 2px);
   border: 1px solid rgba(17, 61, 37, 0.08);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(250, 247, 240, 0.94)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(250, 247, 240, 0.96)),
     rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 18px 40px rgba(9, 31, 20, 0.06);
   position: relative;
 }
 
@@ -612,9 +672,9 @@ canvas {
   padding: 0.85rem;
   border: 1px solid rgba(17, 61, 37, 0.06);
   background:
-    linear-gradient(rgba(17, 61, 37, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(17, 61, 37, 0.06) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(250, 248, 242, 0.92), rgba(255, 255, 255, 0.98));
+    linear-gradient(rgba(17, 61, 37, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 61, 37, 0.045) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(252, 250, 244, 0.95), rgba(255, 255, 255, 0.99));
   background-size: 100% 20%, 12.5% 100%, auto;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
@@ -693,7 +753,7 @@ canvas {
 }
 
 .score-emphasis {
-  font-size: 1rem;
+  font-size: 1.02rem;
   color: var(--green-900);
 }
 
@@ -717,6 +777,7 @@ canvas {
   letter-spacing: 0.04em;
   border: 1px solid transparent;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
 }
 
 .up {
@@ -774,7 +835,7 @@ canvas {
 }
 
 .roster-card h3 {
-  font-size: 1.64rem;
+  font-size: 1.6rem;
   color: var(--green-900);
   overflow-wrap: anywhere;
   line-height: 1;
@@ -833,16 +894,16 @@ canvas {
 }
 
 .golfer-name {
-  font-size: 0.89rem;
+  font-size: 0.88rem;
   font-weight: 800;
   color: var(--ink);
   overflow-wrap: anywhere;
-  line-height: 1.22;
+  line-height: 1.18;
 }
 
 .golfer-total {
   color: var(--green-700);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 800;
   white-space: nowrap;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
@@ -851,7 +912,7 @@ canvas {
 
 .golfer-today {
   color: var(--ink-soft);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -863,7 +924,7 @@ canvas {
   gap: 0.24rem;
   align-items: center;
   color: var(--ink-soft);
-  font-size: 0.69rem;
+  font-size: 0.67rem;
   line-height: 1.4;
 }
 
@@ -958,6 +1019,7 @@ canvas {
   .dashboard-grid {
     gap: 1.15rem;
   }
+
 }
 
 @media (max-width: 680px) {
@@ -1267,6 +1329,7 @@ canvas {
   .leaders-list {
     gap: 0.35rem;
   }
+
 
   .leader-podium {
     padding: 0.64rem 0.6rem 0.68rem;
