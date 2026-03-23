@@ -564,18 +564,18 @@ canvas {
 .graph-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.36rem 0.45rem;
+  gap: 0.28rem 0.34rem;
   justify-content: center;
   max-width: none;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   color: var(--ink-soft);
 }
 
 .graph-legend span {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.24rem 0.42rem;
+  gap: 0.3rem;
+  padding: 0.2rem 0.34rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(17, 61, 37, 0.05);
@@ -583,7 +583,7 @@ canvas {
 }
 
 .graph-legend-bottom {
-  margin-top: 0.72rem;
+  margin-top: 0.58rem;
   width: 100%;
 }
 
@@ -594,8 +594,8 @@ canvas {
 }
 
 .legend-swatch {
-  width: 0.78rem;
-  height: 0.78rem;
+  width: 0.62rem;
+  height: 0.62rem;
   border-radius: 999px;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.86);
 }
@@ -697,6 +697,14 @@ canvas {
   color: var(--green-900);
 }
 
+.score-negative {
+  color: var(--green-700);
+}
+
+.score-positive {
+  color: #7f4a3e;
+}
+
 .movement {
   display: inline-flex;
   justify-content: center;
@@ -759,29 +767,42 @@ canvas {
 .roster-top {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.8rem;
   align-items: center;
-  padding-bottom: 0.72rem;
+  padding-bottom: 0.58rem;
   border-bottom: 1px solid rgba(17, 61, 37, 0.08);
 }
 
 .roster-card h3 {
-  font-size: 2rem;
+  font-size: 1.64rem;
   color: var(--green-900);
   overflow-wrap: anywhere;
+  line-height: 1;
+}
+
+.roster-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  color: var(--green-800);
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
 }
 
 .pick-list {
-  margin: 0.8rem 0 0;
+  margin: 0.62rem 0 0;
   padding: 0;
   list-style: none;
 }
 
 .pick-list li {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) auto;
-  gap: 0.45rem 1rem;
-  padding: 0.72rem 0;
+  gap: 0.26rem;
+  padding: 0.58rem 0;
   border-bottom: 1px solid rgba(17, 61, 37, 0.08);
   transition: background var(--transition), transform var(--transition);
 }
@@ -796,31 +817,32 @@ canvas {
 }
 
 .pick-list li.counting {
-  margin-inline: -0.4rem;
-  padding-inline: 0.6rem;
-  border-radius: 16px;
+  margin-inline: -0.32rem;
+  padding-inline: 0.45rem;
+  border-radius: 14px;
   background:
-    linear-gradient(90deg, rgba(215, 187, 114, 0.12), transparent 64%),
+    linear-gradient(90deg, rgba(215, 187, 114, 0.11), transparent 66%),
     rgba(255, 255, 255, 0.35);
 }
 
 .golfer-summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 0.34rem 0.75rem;
+  gap: 0.24rem 0.65rem;
   align-items: center;
 }
 
 .golfer-name {
-  font-size: 0.92rem;
+  font-size: 0.89rem;
   font-weight: 800;
   color: var(--ink);
   overflow-wrap: anywhere;
+  line-height: 1.22;
 }
 
 .golfer-total {
   color: var(--green-700);
-  font-size: 0.94rem;
+  font-size: 0.92rem;
   font-weight: 800;
   white-space: nowrap;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
@@ -829,7 +851,7 @@ canvas {
 
 .golfer-today {
   color: var(--ink-soft);
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -838,10 +860,10 @@ canvas {
 .round-breakdown {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.32rem;
+  gap: 0.24rem;
   align-items: center;
   color: var(--ink-soft);
-  font-size: 0.72rem;
+  font-size: 0.69rem;
   line-height: 1.4;
 }
 
@@ -849,7 +871,7 @@ canvas {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
-  padding: 0.28rem 0.5rem;
+  padding: 0.24rem 0.42rem;
   background: rgba(255, 255, 255, 0.76);
   border: 1px solid rgba(17, 61, 37, 0.06);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
@@ -859,8 +881,8 @@ canvas {
   color: var(--green-700);
   font-weight: 800;
   letter-spacing: 0.08em;
-  font-size: 0.68rem;
-  margin-left: 0.12rem;
+  font-size: 0.64rem;
+  margin-left: 0.08rem;
 }
 
 @media (max-width: 1100px) {
@@ -1003,12 +1025,12 @@ canvas {
   }
 
   .graph-legend {
-    gap: 0.32rem 0.36rem;
+    gap: 0.24rem 0.28rem;
   }
 
   .graph-legend span {
-    padding: 0.22rem 0.36rem;
-    font-size: 0.66rem;
+    padding: 0.18rem 0.3rem;
+    font-size: 0.6rem;
   }
 
   .graph-shell,
@@ -1082,37 +1104,36 @@ canvas {
   }
 
   .roster-top {
-    gap: 0.55rem;
-    padding-bottom: 0.75rem;
+    gap: 0.45rem;
+    padding-bottom: 0.62rem;
   }
 
   .roster-card h3 {
-    font-size: 1.7rem;
+    font-size: 1.42rem;
   }
 
   .pick-list {
-    margin-top: 0.8rem;
+    margin-top: 0.62rem;
   }
 
   .pick-list li {
-    grid-template-columns: 1fr;
-    gap: 0.35rem;
-    padding: 0.62rem 0;
+    gap: 0.24rem;
+    padding: 0.56rem 0;
   }
 
   .pick-list li.counting {
-    margin-inline: -0.25rem;
-    padding-inline: 0.6rem;
+    margin-inline: -0.18rem;
+    padding-inline: 0.42rem;
   }
 
   .golfer-summary {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.24rem 0.55rem;
+    gap: 0.18rem 0.5rem;
   }
 
   .golfer-name {
-    font-size: 0.92rem;
-    line-height: 1.3;
+    font-size: 0.87rem;
+    line-height: 1.22;
   }
 
   .golfer-total {
@@ -1121,16 +1142,16 @@ canvas {
 
   .golfer-today {
     grid-column: 1 / -1;
-    font-size: 0.76rem;
-  }
-
-  .round-breakdown {
-    gap: 0.35rem;
     font-size: 0.72rem;
   }
 
+  .round-breakdown {
+    gap: 0.24rem;
+    font-size: 0.68rem;
+  }
+
   .round-breakdown .round-chip {
-    padding: 0.32rem 0.52rem;
+    padding: 0.24rem 0.42rem;
   }
 }
 
@@ -1181,8 +1202,8 @@ canvas {
   }
 
   .pick-list li {
-    gap: 0.28rem 0.55rem;
-    padding: 0.68rem 0;
+    gap: 0.22rem;
+    padding: 0.52rem 0;
   }
 
   .golfer-summary {
@@ -1344,75 +1365,62 @@ canvas {
   }
 
   .roster-top {
-    gap: 0.4rem;
-    padding-bottom: 0.68rem;
+    gap: 0.35rem;
+    padding-bottom: 0.56rem;
   }
 
   .roster-card h3 {
-    font-size: 1.56rem;
+    font-size: 1.32rem;
     line-height: 0.98;
   }
 
-  .profile-chip,
-  .pill {
-    padding: 0.48rem 0.66rem;
+  .roster-score {
     font-size: 0.68rem;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.1em;
   }
 
   .pick-list {
-    margin-top: 0.72rem;
+    margin-top: 0.58rem;
   }
 
   .pick-list li {
-    gap: 0.26rem;
-    padding: 0.62rem 0;
+    gap: 0.2rem;
+    padding: 0.5rem 0;
   }
 
   .pick-list li.counting {
-    margin-inline: -0.15rem;
-    padding-inline: 0.52rem;
-    border-radius: 14px;
+    margin-inline: -0.12rem;
+    padding-inline: 0.38rem;
+    border-radius: 12px;
     background:
       linear-gradient(90deg, rgba(215, 187, 114, 0.15), transparent 76%),
       rgba(255, 255, 255, 0.42);
     border-bottom-color: transparent;
   }
 
-  .golfer-name-wrap {
-    gap: 0.3rem;
-    align-items: flex-start;
-  }
-
   .golfer-name {
-    font-size: 0.9rem;
-    line-height: 1.24;
+    font-size: 0.84rem;
+    line-height: 1.2;
     max-width: 100%;
   }
 
-  .counting-badge {
-    padding: 0.22rem 0.46rem;
-    font-size: 0.62rem;
-    letter-spacing: 0.09em;
-  }
-
   .golfer-total {
-    font-size: 0.96rem;
+    font-size: 0.88rem;
   }
 
   .golfer-today {
-    font-size: 0.73rem;
+    font-size: 0.69rem;
     line-height: 1.2;
   }
 
   .round-breakdown {
-    gap: 0.28rem;
-    margin-top: 0.08rem;
+    gap: 0.22rem;
+    margin-top: 0.04rem;
   }
 
   .round-breakdown .round-chip {
-    padding: 0.28rem 0.46rem;
-    font-size: 0.68rem;
+    padding: 0.22rem 0.38rem;
+    font-size: 0.63rem;
     line-height: 1;
   }
 }
@@ -1431,72 +1439,168 @@ canvas {
     bottom: -0.5rem;
   }
 
+  .leaderboard-table {
+    gap: 0;
+    padding: 0.24rem 0.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(17, 61, 37, 0.07);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(249, 246, 238, 0.94)),
+      rgba(255, 255, 255, 0.84);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  }
+
+  .table-head {
+    display: grid;
+    grid-template-columns: 1.4rem minmax(0, 1fr) minmax(2.35rem, auto) minmax(2.45rem, auto) minmax(2.2rem, auto);
+    gap: 0.12rem 0.28rem;
+    padding: 0 0.02rem 0.26rem;
+    margin-bottom: 0.06rem;
+    color: var(--ink-faint);
+    font-size: 0.48rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    align-items: center;
+  }
+
   .table-row {
-    grid-template-columns: 2.8rem minmax(0, 1fr);
-    gap: 0.34rem 0.68rem;
-    padding: 0.74rem 0.76rem;
-    border-radius: 15px;
+    grid-template-columns: 1.4rem minmax(0, 1fr) minmax(2.35rem, auto) minmax(2.45rem, auto) minmax(2.2rem, auto);
+    gap: 0.12rem 0.28rem;
+    padding: 0.42rem 0.02rem;
+    border-radius: 0;
+    border: 0;
+    border-bottom: 1px solid rgba(17, 61, 37, 0.07);
+    background: transparent;
+    box-shadow: none;
+    align-items: center;
+  }
+
+  .table-row > span:nth-child(1),
+  .table-row > span:nth-child(2),
+  .table-row > span:nth-child(3),
+  .table-row > span:nth-child(4),
+  .table-row > span:nth-child(5) {
+    grid-row: auto;
+    grid-column: auto;
+  }
+
+  .table-row:last-child {
+    border-bottom: 0;
+  }
+
+  .table-row > span::before {
+    display: none;
+  }
+
+  .table-head > span {
+    white-space: nowrap;
+  }
+
+  .table-head > span:nth-child(3),
+  .table-head > span:nth-child(4),
+  .table-head > span:nth-child(5) {
+    justify-self: center;
+    text-align: center;
   }
 
   .rank-badge {
-    width: 1.9rem;
-    height: 1.9rem;
-    font-size: 0.76rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    font-size: 0.56rem;
+    margin-top: 0;
   }
 
   .player-name {
-    font-size: 0.93rem;
+    font-size: 0.69rem;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
 
   .score {
-    font-size: 0.93rem;
+    font-size: 0.62rem;
+    justify-self: center;
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
 
   .score-emphasis {
-    font-size: 1.05rem;
+    font-size: 0.72rem;
   }
 
   .movement {
-    padding: 0.3rem 0.46rem;
-    font-size: 0.69rem;
+    padding: 0.13rem 0.22rem;
+    font-size: 0.5rem;
+    justify-self: center;
+    white-space: nowrap;
   }
 
   .roster-card {
-    padding: 0.76rem;
+    padding: 0.62rem;
     border-radius: 16px;
   }
 
   .roster-card h3 {
-    font-size: 1.46rem;
+    font-size: 1.08rem;
+    line-height: 1;
+  }
+
+  .roster-score {
+    font-size: 0.61rem;
+    letter-spacing: 0.09em;
   }
 
   .pick-list li {
-    padding: 0.56rem 0;
+    gap: 0.16rem;
+    padding: 0.38rem 0;
   }
 
   .pick-list li.counting {
-    padding-inline: 0.48rem;
+    margin-inline: -0.08rem;
+    padding-inline: 0.24rem;
+    border-radius: 10px;
+  }
+
+  .golfer-summary {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0.12rem 0.35rem;
+    align-items: start;
   }
 
   .golfer-name {
-    font-size: 0.87rem;
+    font-size: 0.74rem;
+    line-height: 1.15;
   }
 
   .golfer-total {
-    font-size: 0.92rem;
+    font-size: 0.75rem;
+    align-self: start;
   }
 
   .golfer-today {
-    font-size: 0.71rem;
+    grid-column: auto;
+    font-size: 0.62rem;
+    align-self: start;
   }
 
   .round-breakdown {
-    gap: 0.24rem;
+    gap: 0.16rem;
+    font-size: 0.58rem;
+    margin-top: 0.02rem;
   }
 
   .round-breakdown .round-chip {
-    padding: 0.26rem 0.42rem;
-    font-size: 0.65rem;
+    padding: 0.16rem 0.28rem;
+    font-size: 0.56rem;
+  }
+
+  .status-text {
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
   }
 }
 

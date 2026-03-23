@@ -67,6 +67,14 @@ function formatMovement(value) {
   return value > 0 ? `+${value}` : `${value}`;
 }
 
+function scoreToneClass(value) {
+  if (value === null || value === undefined || value === 0) {
+    return "";
+  }
+
+  return value < 0 ? "score-negative" : "score-positive";
+}
+
 function movementClass(value) {
   if (value > 0) return "up";
   if (value < 0) return "down";
@@ -140,8 +148,8 @@ function renderStandings(standings) {
   const header = `
     <div class="table-row table-head" role="row">
       <span role="columnheader">Rank</span>
-      <span role="columnheader">Player</span>
-      <span role="columnheader">Top 4 Total</span>
+      <span role="columnheader">Name</span>
+      <span role="columnheader">TOP 4</span>
       <span role="columnheader">Today</span>
       <span role="columnheader">Movement</span>
     </div>
@@ -153,8 +161,8 @@ function renderStandings(standings) {
         <article class="table-row ${index === 0 ? "featured" : ""}" role="row">
           <span class="rank-badge">${entry.rank}</span>
           <span class="player-name">${entry.name}</span>
-          <span class="score total-score score-emphasis">${formatScore(entry.bestFourTotal)}</span>
-          <span class="score daily-score">${formatScore(entry.today)}</span>
+          <span class="score total-score score-emphasis ${scoreToneClass(entry.bestFourTotal)}">${formatScore(entry.bestFourTotal)}</span>
+          <span class="score daily-score ${scoreToneClass(entry.today)}">${formatScore(entry.today)}</span>
           <span class="movement ${movementClass(entry.movement)}">${entry.movement > 0 ? "▲" : entry.movement < 0 ? "▼" : "•"} ${formatMovement(entry.movement)}</span>
         </article>
       `,
@@ -183,7 +191,7 @@ function renderRosters(rosters, standings) {
         <article class="roster-card">
           <div class="roster-top">
             <h3>${roster.name}</h3>
-            <span class="profile-chip">Top 4: ${formatScore(standing?.bestFourTotal ?? null)}</span>
+            <span class="roster-score">TOP 4: ${formatScore(standing?.bestFourTotal ?? null)}</span>
           </div>
           <ul class="pick-list">
             ${roster.golfers
@@ -193,7 +201,7 @@ function renderRosters(rosters, standings) {
                     <div class="golfer-summary">
                       <span class="golfer-name">${golfer.name}</span>
                       <strong class="golfer-total">${formatScore(golfer.totalToPar)}</strong>
-                      <span class="golfer-today">Today ${formatScoreLong(golfer.today)}</span>
+                      <span class="golfer-today">Today ${formatScore(golfer.today)}</span>
                     </div>
                     <span class="round-breakdown">
                       <span class="round-chip">R1 ${formatScore(golfer.rounds?.[0] ?? null)}</span>
