@@ -14,18 +14,10 @@
   <div class="page-shell">
     <header class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">Augusta Watch Party</p>
-        <h1>Round Table Masters Pick'em 2026</h1>
-        <p class="hero-subheading">Where bragging rights meet the green jacket.</p>
-        <p class="hero-text">
-          Track every roster, every swing, and the live top-four total for your group in one polished leaderboard.
-        </p>
-        <div class="hero-divider" aria-hidden="true"></div>
-        <div class="hero-meta">
-          <span class="hero-meta-item">Live Masters pool scoring</span>
-          <span class="hero-meta-item">Best 4 of 6 counts</span>
-          <span class="hero-meta-item">Updated every 5 minutes</span>
-        </div>
+        <h1>Roundtable Pick'em</h1>
+        <p class="hero-subheading">Masters 2026</p>
+        <p class="hero-location">Augusta National Golf Club</p>
+        <p class="hero-dates">April 9th - 12th</p>
       </div>
 
       <div class="hero-panels">
@@ -36,10 +28,8 @@
         </section>
 
         <section class="status-card update-card">
-          <p class="card-label">Live Update Status</p>
-          <p class="update-time">Refreshing every 5 minutes</p>
-          <p class="update-meta">Last sync: <strong id="last-sync">Waiting for first update</strong></p>
-          <p id="refresh-note" class="refresh-note">Pulling live Masters pool data now.</p>
+          <p class="card-label">Live Update</p>
+          <p class="update-meta">Last updated <strong id="last-sync">Waiting for first update</strong></p>
         </section>
       </div>
     </header>
@@ -49,7 +39,6 @@
         <div class="panel-heading">
           <div>
             <p class="section-kicker">Momentum</p>
-            <h2>Leaderboard Progress</h2>
           </div>
           <span class="pill">Live position trend</span>
         </div>
@@ -57,14 +46,10 @@
         <div class="graph-card">
           <div class="graph-header">
             <div>
-              <h3>Live Progress Graph</h3>
-              <p>Track every participant's top-four total as it evolves from round to round.</p>
               <div class="graph-meta">
                 <span id="graph-updated" class="graph-meta-item">Last updated: waiting for feed</span>
-                <span class="graph-meta-item refresh-chip"><span class="refresh-dot" aria-hidden="true"></span>Auto-refresh every 5 minutes</span>
               </div>
             </div>
-            <div id="graph-legend" class="graph-legend"></div>
           </div>
 
           <div class="graph-shell">
@@ -73,6 +58,7 @@
               <canvas id="progress-chart" aria-label="Leaderboard progress line chart"></canvas>
             </div>
           </div>
+          <div id="graph-legend" class="graph-legend graph-legend-bottom"></div>
         </div>
       </section>
 
@@ -80,7 +66,6 @@
         <div class="panel-heading">
           <div>
             <p class="section-kicker">Leaderboard</p>
-            <h2>Current Standings</h2>
           </div>
           <span class="pill">Top 4 of 6 scores count</span>
         </div>
@@ -100,8 +85,7 @@
       <section class="panel roster-panel">
         <div class="panel-heading">
           <div>
-            <p class="section-kicker">Group Picks</p>
-            <h2>Roster Spotlight</h2>
+            <p class="section-kicker">Team Rosters</p>
           </div>
           <span class="pill">Six golfers per entry</span>
         </div>

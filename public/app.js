@@ -26,7 +26,6 @@ const elements = {
   chartWrap: document.getElementById("chart-wrap"),
   chartCanvas: document.getElementById("progress-chart"),
   lastSync: document.getElementById("last-sync"),
-  refreshNote: document.getElementById("refresh-note"),
   graphUpdated: document.getElementById("graph-updated"),
 };
 
@@ -191,18 +190,17 @@ function renderRosters(rosters, standings) {
               .map(
                 (golfer) => `
                   <li class="${golfer.countingTowardBestFour ? "counting" : ""}">
-                    <span class="golfer-name-wrap">
+                    <div class="golfer-summary">
                       <span class="golfer-name">${golfer.name}</span>
-                      ${golfer.countingTowardBestFour ? '<span class="counting-badge">Counting</span>' : ""}
-                    </span>
-                    <strong class="golfer-total">${formatScore(golfer.totalToPar)}</strong>
-                    <span class="golfer-today">Today: ${formatScoreLong(golfer.today)}</span>
+                      <strong class="golfer-total">${formatScore(golfer.totalToPar)}</strong>
+                      <span class="golfer-today">Today ${formatScoreLong(golfer.today)}</span>
+                    </div>
                     <span class="round-breakdown">
                       <span class="round-chip">R1 ${formatScore(golfer.rounds?.[0] ?? null)}</span>
                       <span class="round-chip">R2 ${formatScore(golfer.rounds?.[1] ?? null)}</span>
                       <span class="round-chip">R3 ${formatScore(golfer.rounds?.[2] ?? null)}</span>
                       <span class="round-chip">R4 ${formatScore(golfer.rounds?.[3] ?? null)}</span>
-                      <span class="status-chip">${String(golfer.status || "missing").toUpperCase()}</span>
+                      ${golfer.status === "active" ? '<span class="status-text">IP</span>' : ""}
                     </span>
                   </li>
                 `,
@@ -331,8 +329,6 @@ function renderError(message) {
   setPanelState(elements.standingsState, message, "error");
   setPanelState(elements.rostersState, message, "error");
   setPanelState(elements.graphState, message, "error");
-
-  elements.refreshNote.textContent = "We hit a snag pulling the latest scores.";
 }
 
 function renderLiveData(data) {
@@ -344,7 +340,6 @@ function renderLiveData(data) {
   const formattedUpdated = formatTimestamp(data.updatedAt);
   elements.lastSync.textContent = formattedUpdated;
   elements.graphUpdated.textContent = `Last updated: ${formattedUpdated}`;
-  elements.refreshNote.textContent = "Live data is connected and will refresh automatically every 5 minutes.";
 }
 
 async function refreshLiveData() {
