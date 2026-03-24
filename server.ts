@@ -1,10 +1,13 @@
 import express from "express";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { getLiveScoresPayload } from "./lib/liveScoresService";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, ".env.local") });
+
 const publicDir = path.join(__dirname, "public");
 const app = express();
 const port = Number(process.env.PORT || 3000);

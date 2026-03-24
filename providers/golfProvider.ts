@@ -1,6 +1,12 @@
 import type { NormalizedGolfer, NormalizedTournamentData } from "../lib/types";
 
-type ProviderName = "mock" | "espn";
+export type GolfDataMode = "mock" | "live";
+export type LiveProviderName = "sportradar";
+
+interface GolfDataOptions {
+  mode?: GolfDataMode;
+  liveProvider?: LiveProviderName;
+}
 
 interface RawMockPlayer {
   id: string;
@@ -18,6 +24,8 @@ interface RawMockTournamentData {
   updatedAt: string;
   players: RawMockPlayer[];
 }
+
+type UnknownRecord = Record<string, unknown>;
 
 // Mock data lets the site work immediately before a real provider is wired up.
 const MOCK_DATA: RawMockTournamentData = {
@@ -93,19 +101,318 @@ async function getMockGolfData(): Promise<NormalizedTournamentData> {
   return normalizeTournamentData(MOCK_DATA);
 }
 
-// This is the seam for wiring in a real provider later.
+// Real/live provider placeholder prepared for Sportradar golf data.
+// Paste real provider credentials into environment variables, not directly in code:
+// - SPORTRADAR_GOLF_API_KEY=your_api_key_here
+// - SPORTRADAR_GOLF_TOURNAMENT_ID=your_tournament_id_here
+// - SPORTRADAR_GOLF_BASE_URL=https://api.sportradar.com/golf/trial/v2/en
+//
+// Then replace `mapSportradarResponseToNormalized` with the real response mapping logic.
 // Keep the output normalized so the frontend and scoring code never change.
-async function getEspnGolfData(): Promise<NormalizedTournamentData> {
-  throw new Error("Real provider not connected yet. Set GOLF_DATA_PROVIDER=mock or implement getEspnGolfData.");
+async function getSportradarGolfData(): Promise<NormalizedTournamentData> {
+  const apiKey = process.env.SPORTRADAR_GOLF_API_KEY;
+  const tournamentId = process.env.SPORTRADAR_GOLF_TOURNAMENT_ID;
+  const baseUrl = process.env.SPORTRADAR_GOLF_BASE_URL;
+
+  if (!apiKey || !tournamentId || !baseUrl) {
+    throw new Error(
+      "Live golf mode is enabled, but SPORTRADAR_GOLF_API_KEY, SPORTRADAR_GOLF_TOURNAMENT_ID, or SPORTRADAR_GOLF_BASE_URL is missing.",
+    );
+  }
+
+  // Tournament Leaderboard endpoint reference:
+  // https://developer.sportradar.com/golf/reference/golf-tournament-leaderboard
+  //
+  // Expected base URL example:
+  // https://api.sportradar.com/golf/trial/pga/v3/en/2026
+  const response = await fetch(
+    `${baseUrl.replace(/\/$/, "")}/tournaments/${tournamentId}/leaderboard.json?api_key=${encodeURIComponent(apiKey)}`,
+    {
+      headers: {
+        Accept: "application/json",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Live provider request failed with status ${response.status}.`);
+  }
+
+  const rawData = (await response.json()) as unknown;
+  return mapSportradarResponseToNormalized(rawData);
 }
 
-export async function getGolfData(providerName: ProviderName = (process.env.GOLF_DATA_PROVIDER as ProviderName) || "mock"): Promise<NormalizedTournamentData> {
-  switch (providerName) {
+function getRecord(value: unknown): UnknownRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as UnknownRecord) : null;
+}
+
+function getArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function getString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function getNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function getRecordValue(record: UnknownRecord | null, keys: string[]): unknown {
+  if (!record) {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    if (key in record) {
+      return record[key];
+    }
+  }
+
+  return undefined;
+}
+
+function formatPlayerName(player: UnknownRecord): string {
+  const explicitName = getString(getRecordValue(player, ["name", "full_name", "display_name"]));
+  if (explicitName) {
+    return explicitName;
+  }
+
+  const firstName = getString(getRecordValue(player, ["first_name", "firstname", "given_name"])) ?? "";
+  const lastName = getString(getRecordValue(player, ["last_name", "lastname", "family_name"])) ?? "";
+  const combined = `${firstName} ${lastName}`.trim();
+
+  return combined || "Unknown Player";
+}
+
+function mapPlayerStatus(rawStatus: unknown): NormalizedGolfer["status"] {
+  const status = (getString(rawStatus) ?? "active").toLowerCase();
+
+  if (["wd", "withdrawn"].includes(status)) {
+    return "wd";
+  }
+
+  if (["cut", "mc"].includes(status)) {
+    return "cut";
+  }
+
+  return "active";
+}
+
+function normalizeThru(rawThru: unknown, rawStatus: unknown): string {
+  const thruNumber = getNumber(rawThru);
+  const status = (getString(rawStatus) ?? "").toLowerCase();
+
+  if (status === "closed" || status === "complete" || status === "complete_round" || status === "finished") {
+    return "F";
+  }
+
+  if (thruNumber === 18) {
+    return "F";
+  }
+
+  if (thruNumber !== null) {
+    return String(thruNumber);
+  }
+
+  return getString(rawThru) ?? "";
+}
+
+function extractRounds(player: UnknownRecord): [number | null, number | null, number | null, number | null] {
+  const roundSource = getArray(
+    getRecordValue(player, ["rounds", "round", "scorecards", "scores"]),
+  );
+
+  const rounds: [number | null, number | null, number | null, number | null] = [null, null, null, null];
+
+  for (const item of roundSource) {
+    const round = getRecord(item);
+    if (!round) {
+      continue;
+    }
+
+    const roundNumber = getNumber(getRecordValue(round, ["number", "round", "sequence"]));
+    if (roundNumber === null || roundNumber < 1 || roundNumber > 4) {
+      continue;
+    }
+
+    const strokes =
+      getNumber(getRecordValue(round, ["strokes", "score", "total_strokes"])) ??
+      getNumber(getRecordValue(getRecord(round.scorecard), ["strokes", "total_strokes"]));
+
+    rounds[roundNumber - 1] = strokes;
+  }
+
+  return rounds;
+}
+
+function calculateTodayScore(player: UnknownRecord, rounds: [number | null, number | null, number | null, number | null]): number | null {
+  const explicitToday = getNumber(getRecordValue(player, ["today", "round_score", "current_round_score"]));
+  if (explicitToday !== null) {
+    return explicitToday;
+  }
+
+  const currentRound = getNumber(getRecordValue(player, ["current_round", "round"]));
+  if (currentRound !== null && currentRound >= 1 && currentRound <= 4) {
+    const roundNode = getArray(getRecordValue(player, ["rounds", "round", "scorecards", "scores"])).find((item) => {
+      const roundRecord = getRecord(item);
+      return getNumber(getRecordValue(roundRecord, ["number", "round", "sequence"])) === currentRound;
+    });
+
+    const roundRecord = getRecord(roundNode);
+    const scoreToPar =
+      getNumber(getRecordValue(roundRecord, ["score", "score_to_par", "to_par"])) ??
+      getNumber(getRecordValue(getRecord(roundRecord?.scorecard), ["score", "score_to_par", "to_par"]));
+
+    if (scoreToPar !== null) {
+      return scoreToPar;
+    }
+  }
+
+  const lastKnownRound = [...rounds].reverse().find((score) => score !== null);
+  return lastKnownRound !== undefined ? null : null;
+}
+
+function normalizePosition(rawPosition: unknown): string {
+  const stringPosition = getString(rawPosition);
+  if (stringPosition) {
+    return stringPosition;
+  }
+
+  const numberPosition = getNumber(rawPosition);
+  return numberPosition !== null ? String(numberPosition) : "";
+}
+
+function positionSortValue(position: string): number {
+  const match = position.match(/\d+/);
+  return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
+}
+
+function mapSportradarPlayer(playerNode: unknown): NormalizedGolfer | null {
+  const player = getRecord(playerNode);
+  if (!player) {
+    return null;
+  }
+
+  const id = getString(getRecordValue(player, ["id", "player_id"]));
+  if (!id) {
+    return null;
+  }
+
+  const rounds = extractRounds(player);
+  const status = mapPlayerStatus(getRecordValue(player, ["status", "result", "state"]));
+  const totalToPar =
+    getNumber(getRecordValue(player, ["score", "total_to_par", "to_par"])) ??
+    getNumber(getRecordValue(getRecord(player.tournament), ["score", "total_to_par", "to_par"]));
+
+  return {
+    id,
+    name: formatPlayerName(player),
+    position: normalizePosition(getRecordValue(player, ["position", "rank", "place"])),
+    totalToPar,
+    today: calculateTodayScore(player, rounds),
+    thru: normalizeThru(getRecordValue(player, ["thru", "holes_completed"]), getRecordValue(player, ["status", "result", "state"])),
+    rounds,
+    status,
+  };
+}
+
+function extractLeaderboardPlayers(data: UnknownRecord): NormalizedGolfer[] {
+  const possibleArrays = [
+    getRecordValue(data, ["leaderboard"]),
+    getRecordValue(data, ["players"]),
+    getRecordValue(getRecord(data.tournament), ["leaderboard", "players"]),
+  ];
+
+  for (const candidate of possibleArrays) {
+    const players = getArray(candidate)
+      .map(mapSportradarPlayer)
+      .filter((player): player is NormalizedGolfer => Boolean(player));
+
+    if (players.length) {
+      return players.sort((a, b) => positionSortValue(a.position) - positionSortValue(b.position));
+    }
+  }
+
+  return [];
+}
+
+function mapSportradarResponseToNormalized(rawData: unknown): NormalizedTournamentData {
+  const data = getRecord(rawData);
+
+  if (!data) {
+    throw new Error("Sportradar leaderboard response is not an object.");
+  }
+
+  const tournamentRecord = getRecord(data.tournament) ?? data;
+  const players = extractLeaderboardPlayers(data);
+
+  if (!players.length) {
+    throw new Error("Sportradar leaderboard response did not contain any players.");
+  }
+
+  return {
+    tournament: getString(getRecordValue(tournamentRecord, ["name", "tournament"])) ?? "Masters Tournament",
+    updatedAt:
+      getString(getRecordValue(data, ["generated_at", "updated_at", "last_updated"])) ??
+      getString(getRecordValue(tournamentRecord, ["updated_at", "generated_at"])) ??
+      new Date().toISOString(),
+    players,
+  };
+}
+
+function resolveMode(explicitMode?: GolfDataMode): GolfDataMode {
+  if (explicitMode) {
+    return explicitMode;
+  }
+
+  const envMode = process.env.GOLF_DATA_MODE;
+
+  if (envMode === "live") {
+    return "live";
+  }
+
+  return "mock";
+}
+
+function resolveLiveProvider(explicitProvider?: LiveProviderName): LiveProviderName {
+  if (explicitProvider) {
+    return explicitProvider;
+  }
+
+  const envProvider = process.env.GOLF_LIVE_PROVIDER;
+
+  if (envProvider === "sportradar") {
+    return "sportradar";
+  }
+
+  return "sportradar";
+}
+
+export async function getGolfData(options: GolfDataOptions = {}): Promise<NormalizedTournamentData> {
+  const mode = resolveMode(options.mode);
+  const liveProvider = resolveLiveProvider(options.liveProvider);
+
+  switch (mode) {
     case "mock":
       return getMockGolfData();
-    case "espn":
-      return getEspnGolfData();
+    case "live":
+      switch (liveProvider) {
+        case "sportradar":
+          return getSportradarGolfData();
+        default:
+          throw new Error(`Unsupported live golf provider: ${liveProvider}`);
+      }
     default:
-      throw new Error(`Unsupported golf provider: ${providerName}`);
+      throw new Error(`Unsupported golf data mode: ${mode}`);
   }
 }
