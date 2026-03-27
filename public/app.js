@@ -126,9 +126,10 @@ function renderLeaders(leaders) {
           <span class="podium-place">${index + 1}${suffix}</span>
           <div class="podium-copy">
             <strong class="podium-name">${leader.name}</strong>
-            <span class="podium-meta">Today ${formatScore(leader.today)} • Move ${formatMovement(leader.movement)}</span>
+            <span class="podium-score">Top 4: ${formatScore(leader.bestFourTotal)}</span>
+            <span class="podium-meta">Today ${formatScore(leader.today)}</span>
+            <span class="podium-meta">Move ${formatMovement(leader.movement)}</span>
           </div>
-          <span class="podium-score">Top 4: ${formatScore(leader.bestFourTotal)}</span>
         </article>
       `;
     })
@@ -208,7 +209,6 @@ function renderRosters(rosters, standings) {
                       <span class="round-chip">R2 ${formatScore(golfer.rounds?.[1] ?? null)}</span>
                       <span class="round-chip">R3 ${formatScore(golfer.rounds?.[2] ?? null)}</span>
                       <span class="round-chip">R4 ${formatScore(golfer.rounds?.[3] ?? null)}</span>
-                      ${golfer.status === "active" ? '<span class="status-text">IP</span>' : ""}
                     </span>
                   </li>
                 `,

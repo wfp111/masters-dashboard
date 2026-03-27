@@ -1,4 +1,5 @@
 import type { NormalizedGolfer, NormalizedTournamentData } from "../lib/types";
+import { PARTICIPANT_PICKS } from "../data/picks";
 
 export type GolfDataMode = "mock" | "live";
 export type LiveProviderName = "sportradar";
@@ -27,49 +28,90 @@ interface RawMockTournamentData {
 
 type UnknownRecord = Record<string, unknown>;
 
-// Mock data lets the site work immediately before a real provider is wired up.
-const MOCK_DATA: RawMockTournamentData = {
-  tournament: "Masters Tournament",
-  updatedAt: "2026-04-12T19:15:00.000Z",
-  players: [
-    { id: "p1", name: "Scottie Scheffler", position: "1", totalToPar: -8, today: -1, thru: "F", rounds: [69, 70, 70, 71], status: "active" },
-    { id: "p2", name: "Rory McIlroy", position: "T2", totalToPar: -6, today: -2, thru: "15", rounds: [71, 70, 71, null], status: "active" },
-    { id: "p3", name: "Hideki Matsuyama", position: "T4", totalToPar: -5, today: -2, thru: "F", rounds: [70, 72, 71, 70], status: "active" },
-    { id: "p4", name: "Patrick Cantlay", position: "T10", totalToPar: -3, today: -1, thru: "16", rounds: [71, 71, 72, null], status: "active" },
-    { id: "p5", name: "Sahith Theegala", position: "T6", totalToPar: -4, today: -1, thru: "F", rounds: [72, 70, 71, 71], status: "active" },
-    { id: "p6", name: "Min Woo Lee", position: "T24", totalToPar: 1, today: 0, thru: "14", rounds: [73, 72, 72, null], status: "active" },
-    { id: "p7", name: "Jon Rahm", position: "T2", totalToPar: -6, today: -2, thru: "F", rounds: [70, 71, 71, 70], status: "active" },
-    { id: "p8", name: "Xander Schauffele", position: "T6", totalToPar: -4, today: -2, thru: "F", rounds: [71, 71, 72, 70], status: "active" },
-    { id: "p9", name: "Tommy Fleetwood", position: "T6", totalToPar: -4, today: -1, thru: "17", rounds: [71, 71, 71, null], status: "active" },
-    { id: "p10", name: "Viktor Hovland", position: "T10", totalToPar: -3, today: -1, thru: "16", rounds: [72, 70, 72, null], status: "active" },
-    { id: "p11", name: "Cameron Young", position: "T18", totalToPar: -1, today: 0, thru: "13", rounds: [71, 72, 72, null], status: "active" },
-    { id: "p12", name: "Sepp Straka", position: "T28", totalToPar: 2, today: 0, thru: "14", rounds: [73, 72, 73, null], status: "active" },
-    { id: "p13", name: "Collin Morikawa", position: "T4", totalToPar: -5, today: -1, thru: "F", rounds: [71, 70, 71, 71], status: "active" },
-    { id: "p14", name: "Ludvig Aberg", position: "T6", totalToPar: -4, today: -2, thru: "F", rounds: [71, 70, 73, 70], status: "active" },
-    { id: "p15", name: "Justin Thomas", position: "T10", totalToPar: -3, today: -1, thru: "15", rounds: [71, 71, 72, null], status: "active" },
-    { id: "p16", name: "Tony Finau", position: "T18", totalToPar: -1, today: 0, thru: "13", rounds: [72, 71, 72, null], status: "active" },
-    { id: "p17", name: "Akshay Bhatia", position: "T14", totalToPar: -2, today: 0, thru: "14", rounds: [71, 72, 71, null], status: "active" },
-    { id: "p18", name: "Jason Day", position: "T24", totalToPar: 1, today: 0, thru: "12", rounds: [73, 72, 72, null], status: "active" },
-    { id: "p19", name: "Brooks Koepka", position: "T10", totalToPar: -3, today: -1, thru: "16", rounds: [71, 71, 72, null], status: "active" },
-    { id: "p20", name: "Wyndham Clark", position: "T18", totalToPar: -1, today: -1, thru: "F", rounds: [72, 72, 72, 71], status: "active" },
-    { id: "p21", name: "Matt Fitzpatrick", position: "T14", totalToPar: -2, today: -1, thru: "F", rounds: [71, 72, 72, 71], status: "active" },
-    { id: "p22", name: "Sungjae Im", position: "T14", totalToPar: -2, today: -1, thru: "17", rounds: [71, 72, 72, null], status: "active" },
-    { id: "p23", name: "Russell Henley", position: "T18", totalToPar: -1, today: -1, thru: "F", rounds: [72, 71, 73, 71], status: "active" },
-    { id: "p24", name: "Tom Kim", position: "T22", totalToPar: 0, today: 0, thru: "15", rounds: [72, 72, 72, null], status: "active" },
-    { id: "p25", name: "Jordan Spieth", position: "T14", totalToPar: -2, today: -1, thru: "18", rounds: [71, 72, 72, 71], status: "active" },
-    { id: "p26", name: "Patrick Reed", position: "T18", totalToPar: -1, today: -1, thru: "18", rounds: [72, 71, 74, 71], status: "active" },
-    { id: "p27", name: "Shane Lowry", position: "T18", totalToPar: -1, today: -1, thru: "16", rounds: [72, 71, 74, null], status: "active" },
-    { id: "p28", name: "Corey Conners", position: "T22", totalToPar: 0, today: 0, thru: "14", rounds: [72, 72, 72, null], status: "active" },
-    { id: "p29", name: "Denny McCarthy", position: "T30", totalToPar: 2, today: 0, thru: "12", rounds: [73, 72, 73, null], status: "active" },
-    { id: "p30", name: "Harris English", position: "T34", totalToPar: 3, today: 0, thru: "13", rounds: [73, 73, 73, null], status: "active" },
-    { id: "p31", name: "Sam Burns", position: "T22", totalToPar: 0, today: -1, thru: "18", rounds: [72, 72, 73, 71], status: "active" },
-    { id: "p32", name: "Max Homa", position: "T14", totalToPar: -2, today: -1, thru: "18", rounds: [71, 72, 73, 70], status: "active" },
-    { id: "p33", name: "Cameron Smith", position: "T28", totalToPar: 2, today: 0, thru: "14", rounds: [73, 72, 73, null], status: "active" },
-    { id: "p34", name: "Keegan Bradley", position: "T30", totalToPar: 2, today: 0, thru: "13", rounds: [73, 73, 72, null], status: "active" },
-    { id: "p35", name: "Brian Harman", position: "T24", totalToPar: 1, today: 0, thru: "15", rounds: [72, 73, 72, null], status: "active" },
-    { id: "p36", name: "Adam Scott", position: "T30", totalToPar: 2, today: 1, thru: "16", rounds: [72, 73, 72, null], status: "active" },
-  ],
-};
+function toLookupKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function seededHash(value: string): number {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+}
+
+function seededRange(seed: string, min: number, max: number): number {
+  const hash = seededHash(seed);
+  return min + (hash % (max - min + 1));
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function buildMockRounds(name: string): [number, number, number, number] {
+  const roundToPar: [number, number, number, number] = [
+    seededRange(`${name}:r1`, -3, 3),
+    seededRange(`${name}:r2`, -3, 3),
+    seededRange(`${name}:r3`, -2, 4),
+    seededRange(`${name}:r4`, -3, 3),
+  ];
+
+  const totalToPar = roundToPar.reduce((sum, score) => sum + score, 0);
+  if (totalToPar < -8) {
+    roundToPar[3] += -8 - totalToPar;
+  } else if (totalToPar > 6) {
+    roundToPar[3] -= totalToPar - 6;
+  }
+
+  roundToPar[3] = clamp(roundToPar[3], -3, 3);
+
+  return [
+    72 + roundToPar[0],
+    72 + roundToPar[1],
+    72 + roundToPar[2],
+    72 + roundToPar[3],
+  ];
+}
+
+function buildMockTournamentData(): RawMockTournamentData {
+  const uniqueNames = [
+    ...new Set(PARTICIPANT_PICKS.flatMap((participant) => participant.golfers.map((golfer) => golfer.trim()))),
+  ];
+
+  const players = uniqueNames.map((name, index) => {
+    const rounds = buildMockRounds(name);
+    const totalToPar = rounds.reduce((sum, round) => sum + (round - 72), 0);
+    const today = rounds[3] - 72;
+
+    return {
+      id: `mock-${index + 1}`,
+      name,
+      position: "",
+      totalToPar,
+      today,
+      thru: "F",
+      rounds,
+      status: "active" as const,
+    };
+  });
+
+  const rankedPlayers = [...players]
+    .sort((left, right) => left.totalToPar - right.totalToPar)
+    .map((player, index) => ({
+      ...player,
+      position: String(index + 1),
+    }));
+
+  return {
+    tournament: "Masters Tournament",
+    updatedAt: new Date().toISOString(),
+    players: rankedPlayers,
+  };
+}
 
 function normalizePlayer(player: Partial<NormalizedGolfer> & { id: string; name: string }): NormalizedGolfer {
   return {
@@ -98,7 +140,16 @@ function normalizeTournamentData(data: { tournament?: string; updatedAt?: string
 }
 
 async function getMockGolfData(): Promise<NormalizedTournamentData> {
-  return normalizeTournamentData(MOCK_DATA);
+  const firstParticipant = PARTICIPANT_PICKS[0];
+  console.log(
+    `[golfProvider] mock mode selected. first participant=${firstParticipant?.name ?? "n/a"} golfers=${JSON.stringify(firstParticipant?.golfers ?? [])}`,
+  );
+
+  const normalized = normalizeTournamentData(buildMockTournamentData());
+  console.log(
+    `[golfProvider] generated mock golfers from picks. playerCount=${normalized.players.length} firstPlayers=${JSON.stringify(normalized.players.slice(0, 6).map((player) => player.name))}`,
+  );
+  return normalized;
 }
 
 // Real/live provider placeholder prepared for Sportradar golf data.

@@ -1,27 +1,27 @@
 :root {
-  --bg: #eef2e7;
-  --bg-deep: #dfe8d8;
-  --surface: rgba(255, 252, 245, 0.8);
-  --surface-strong: rgba(255, 253, 248, 0.92);
+  --bg: #edf2e8;
+  --bg-deep: #d6e1d0;
+  --surface: rgba(255, 253, 248, 0.84);
+  --surface-strong: rgba(255, 253, 249, 0.95);
   --surface-dark: rgba(13, 42, 27, 0.92);
-  --line: rgba(17, 61, 37, 0.1);
-  --line-strong: rgba(17, 61, 37, 0.16);
-  --green-900: #0d2f1f;
-  --green-800: #123b29;
-  --green-700: #1b5638;
-  --green-600: #2b744d;
-  --green-500: #3f8a61;
-  --gold-500: #b99642;
-  --gold-400: #d7bb72;
-  --gold-300: rgba(215, 187, 114, 0.2);
-  --ink: #163323;
-  --ink-soft: #4f6759;
-  --ink-faint: #74857a;
+  --line: rgba(20, 63, 39, 0.11);
+  --line-strong: rgba(18, 59, 37, 0.18);
+  --green-900: #0b2b1c;
+  --green-800: #103624;
+  --green-700: #184a31;
+  --green-600: #2a6745;
+  --green-500: #4d8764;
+  --gold-500: #b88e3a;
+  --gold-400: #cfb06a;
+  --gold-300: rgba(207, 176, 106, 0.18);
+  --ink: #122d20;
+  --ink-soft: #52675b;
+  --ink-faint: #75867b;
   --white: #fffef9;
-  --shadow-lg: 0 28px 70px rgba(8, 31, 18, 0.12);
-  --shadow-md: 0 18px 42px rgba(10, 35, 21, 0.1);
-  --shadow-sm: 0 10px 24px rgba(10, 35, 21, 0.07);
-  --shadow-xl: 0 38px 110px rgba(7, 27, 17, 0.2);
+  --shadow-lg: 0 30px 72px rgba(7, 28, 17, 0.13);
+  --shadow-md: 0 18px 44px rgba(9, 33, 21, 0.11);
+  --shadow-sm: 0 12px 28px rgba(10, 35, 21, 0.075);
+  --shadow-xl: 0 42px 120px rgba(6, 24, 15, 0.24);
   --radius-xl: 32px;
   --radius-lg: 24px;
   --radius-md: 18px;
@@ -29,7 +29,7 @@
   --font-display: "Cormorant Garamond", Georgia, serif;
   --font-body: "Manrope", "Segoe UI", sans-serif;
   --container: 1280px;
-  --transition: 180ms ease;
+  --transition: 220ms ease;
 }
 
 *,
@@ -48,9 +48,9 @@ body {
   font-family: var(--font-body);
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(215, 187, 114, 0.16), transparent 20%),
-    radial-gradient(circle at 85% 18%, rgba(38, 112, 75, 0.1), transparent 24%),
-    linear-gradient(180deg, #f8f5ee 0%, #eef3e9 35%, #e7eee0 100%);
+    radial-gradient(circle at top left, rgba(207, 176, 106, 0.14), transparent 19%),
+    radial-gradient(circle at 88% 15%, rgba(28, 85, 55, 0.1), transparent 23%),
+    linear-gradient(180deg, #f7f2e9 0%, #eef2e7 32%, #e5ecde 100%);
   position: relative;
 }
 
@@ -59,16 +59,24 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.35;
+  opacity: 0.4;
   background:
     linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.12) 48%, transparent 100%),
     radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.22), transparent 30%),
+    radial-gradient(circle at 78% 76%, rgba(185, 160, 104, 0.045), transparent 28%),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 5px,
+      rgba(93, 74, 39, 0.008) 5px,
+      rgba(93, 74, 39, 0.008) 6px
+    ),
     repeating-linear-gradient(
       -18deg,
       transparent 0,
       transparent 22px,
-      rgba(17, 61, 37, 0.018) 22px,
-      rgba(17, 61, 37, 0.018) 23px
+      rgba(16, 58, 36, 0.016) 22px,
+      rgba(16, 58, 36, 0.016) 23px
     );
 }
 
@@ -78,8 +86,8 @@ body::after {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 12% 12%, rgba(215, 187, 114, 0.08), transparent 24%),
-    radial-gradient(circle at 82% 38%, rgba(18, 59, 41, 0.07), transparent 20%),
+    radial-gradient(circle at 10% 12%, rgba(207, 176, 106, 0.09), transparent 24%),
+    radial-gradient(circle at 84% 36%, rgba(18, 59, 41, 0.075), transparent 20%),
     linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.08) 48%, transparent 100%);
   mix-blend-mode: soft-light;
 }
@@ -91,9 +99,33 @@ body::after {
   height: 420px;
   pointer-events: none;
   background:
-    radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.34), transparent 26%),
-    radial-gradient(circle at 82% 12%, rgba(215, 187, 114, 0.1), transparent 18%);
+    radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.36), transparent 26%),
+    radial-gradient(circle at 82% 12%, rgba(207, 176, 106, 0.11), transparent 18%),
+    repeating-linear-gradient(
+      164deg,
+      transparent 0,
+      transparent 34px,
+      rgba(18, 59, 41, 0.012) 34px,
+      rgba(18, 59, 41, 0.012) 35px
+    );
   opacity: 0.9;
+}
+
+.page-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 251, 242, 0.06), transparent 22%, transparent 78%, rgba(255, 251, 242, 0.04)),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 96px,
+      rgba(97, 80, 49, 0.01) 96px,
+      rgba(97, 80, 49, 0.01) 97px
+    );
+  opacity: 0.45;
 }
 
 img,
@@ -114,7 +146,7 @@ canvas {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.95fr);
   gap: 1.5rem;
-  margin-bottom: 2.15rem;
+  margin-bottom: 1.6rem;
 }
 
 .hero-copy,
@@ -134,7 +166,7 @@ canvas {
   padding: 3rem 2.4rem 2.7rem;
   color: var(--white);
   background:
-    linear-gradient(135deg, rgba(7, 27, 17, 0.98), rgba(12, 43, 28, 0.95) 35%, rgba(22, 67, 44, 0.92) 68%, rgba(40, 96, 65, 0.9)),
+    linear-gradient(135deg, rgba(6, 23, 15, 0.985), rgba(10, 37, 24, 0.96) 35%, rgba(18, 57, 37, 0.94) 68%, rgba(34, 84, 56, 0.92)),
     var(--green-900);
   box-shadow: var(--shadow-xl);
   display: grid;
@@ -146,9 +178,11 @@ canvas {
   position: absolute;
   inset: 14px;
   border-radius: calc(var(--radius-xl) - 2px);
-  border: 1px solid rgba(255, 246, 222, 0.16);
+  border: 1px solid rgba(255, 244, 214, 0.18);
   pointer-events: none;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 0 0 1px rgba(184, 142, 58, 0.05);
 }
 
 .hero-copy::before {
@@ -157,7 +191,7 @@ canvas {
   inset: 0;
   background:
     radial-gradient(circle at 14% 14%, rgba(255, 255, 255, 0.08), transparent 20%),
-    radial-gradient(circle at 88% 14%, rgba(215, 187, 114, 0.22), transparent 22%),
+    radial-gradient(circle at 88% 14%, rgba(207, 176, 106, 0.24), transparent 22%),
     linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.04) 35%, transparent 100%),
     repeating-linear-gradient(
       122deg,
@@ -176,7 +210,7 @@ canvas {
   right: -110px;
   bottom: -150px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(215, 187, 114, 0.28), transparent 68%);
+  background: radial-gradient(circle, rgba(207, 176, 106, 0.3), transparent 68%);
 }
 
 .eyebrow,
@@ -213,7 +247,7 @@ canvas {
   line-height: 0.92;
   letter-spacing: -0.04em;
   white-space: nowrap;
-  text-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+  text-shadow: 0 10px 34px rgba(0, 0, 0, 0.18);
 }
 
 .hero-subheading {
@@ -224,6 +258,7 @@ canvas {
   font-size: clamp(1.55rem, 2.2vw, 2rem);
   line-height: 1.05;
   color: rgba(255, 247, 229, 0.94);
+  text-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
 }
 
 .hero-location,
@@ -243,7 +278,7 @@ canvas {
   width: 74px;
   height: 1px;
   margin: 0 auto 0.85rem;
-  background: linear-gradient(90deg, transparent, rgba(215, 187, 114, 0.84), transparent);
+  background: linear-gradient(90deg, transparent, rgba(207, 176, 106, 0.84), transparent);
 }
 
 .hero-dates {
@@ -269,7 +304,7 @@ canvas {
   position: relative;
   overflow: hidden;
   padding: 1.5rem;
-  background: linear-gradient(180deg, rgba(255, 254, 250, 0.92), rgba(247, 243, 232, 0.82));
+  background: linear-gradient(180deg, rgba(255, 254, 250, 0.94), rgba(246, 242, 233, 0.86));
 }
 
 .status-card::before,
@@ -280,7 +315,7 @@ canvas {
   right: 1.4rem;
   top: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(215, 187, 114, 0.75), transparent);
+  background: linear-gradient(90deg, transparent, rgba(207, 176, 106, 0.76), transparent);
   opacity: 0.9;
 }
 
@@ -304,14 +339,16 @@ canvas {
 .leader-podium {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.4rem;
+  gap: 0.28rem;
   align-content: start;
   position: relative;
   border-radius: 20px;
-  padding: 0.88rem 0.9rem 0.92rem;
-  background: rgba(255, 255, 255, 0.76);
+  padding: 0.72rem 0.82rem 0.76rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 244, 236, 0.84));
   border: 1px solid rgba(17, 61, 37, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 12px 24px rgba(10, 33, 21, 0.05);
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 
@@ -320,7 +357,7 @@ canvas {
   position: absolute;
   inset: auto 0 0 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(185, 150, 66, 0.38), transparent);
+  background: linear-gradient(90deg, transparent, rgba(184, 142, 58, 0.34), transparent);
 }
 
 .leader-podium:hover,
@@ -361,7 +398,7 @@ canvas {
   color: var(--ink-soft);
   font-size: 0.72rem;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.15;
 }
 
 .podium-score {
@@ -373,35 +410,23 @@ canvas {
 
 .first {
   background:
-    linear-gradient(90deg, rgba(215, 187, 114, 0.2), rgba(255, 255, 255, 0.84)),
-    rgba(255, 255, 255, 0.78);
+    linear-gradient(90deg, rgba(207, 176, 106, 0.24), rgba(255, 255, 255, 0.88)),
+    rgba(255, 255, 255, 0.82);
   border-color: rgba(185, 150, 66, 0.2);
-  box-shadow: 0 26px 50px rgba(185, 150, 66, 0.2);
-  transform: translateY(-3px);
-}
-
-.first .podium-name {
-  font-size: 1.72rem;
+  box-shadow: 0 28px 54px rgba(184, 142, 58, 0.2);
 }
 
 .first .podium-place {
-  min-width: 3.6rem;
-  padding-inline: 0.9rem;
   box-shadow: 0 12px 24px rgba(185, 150, 66, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.42);
 }
 
-.first .podium-score {
-  font-size: 0.98rem;
-  color: var(--green-900);
-}
-
 .second {
-  background: linear-gradient(90deg, rgba(171, 178, 186, 0.18), rgba(255, 255, 255, 0.84));
+  background: linear-gradient(90deg, rgba(175, 181, 188, 0.2), rgba(255, 255, 255, 0.86));
   border-color: rgba(146, 154, 164, 0.18);
 }
 
 .third {
-  background: linear-gradient(90deg, rgba(169, 111, 74, 0.16), rgba(255, 255, 255, 0.84));
+  background: linear-gradient(90deg, rgba(164, 108, 72, 0.2), rgba(255, 255, 255, 0.86));
   border-color: rgba(145, 96, 65, 0.16);
 }
 
@@ -456,7 +481,7 @@ canvas {
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.86fr);
-  gap: 1.8rem;
+  gap: 1.35rem;
   align-items: start;
 }
 
@@ -464,7 +489,10 @@ canvas {
   position: relative;
   overflow: hidden;
   padding: 1.6rem;
-  background: linear-gradient(180deg, rgba(255, 253, 247, 0.88), rgba(248, 245, 237, 0.72));
+  background: linear-gradient(180deg, rgba(255, 253, 248, 0.9), rgba(247, 243, 235, 0.78));
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 .panel-heading {
@@ -476,6 +504,11 @@ canvas {
   margin-bottom: 1.35rem;
 }
 
+.panel-heading > div {
+  display: grid;
+  gap: 0.14rem;
+}
+
 .panel-heading::after {
   content: "";
   position: absolute;
@@ -484,7 +517,7 @@ canvas {
   width: 82px;
   height: 2px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--gold-500), rgba(185, 150, 66, 0.15));
+  background: linear-gradient(90deg, var(--gold-500), rgba(184, 142, 58, 0.14));
 }
 
 .section-kicker {
@@ -515,12 +548,12 @@ canvas {
   justify-content: center;
   border-radius: 999px;
   padding: 0.58rem 0.92rem;
-  background: linear-gradient(180deg, rgba(215, 187, 114, 0.14), rgba(255, 255, 255, 0.45));
-  border: 1px solid rgba(185, 150, 66, 0.16);
+  background: linear-gradient(180deg, rgba(207, 176, 106, 0.14), rgba(255, 255, 255, 0.5));
+  border: 1px solid rgba(184, 142, 58, 0.16);
   color: var(--green-800);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -554,7 +587,7 @@ canvas {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(250, 247, 240, 0.96)),
     rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 18px 40px rgba(9, 31, 20, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 22px 46px rgba(9, 31, 20, 0.08);
   position: relative;
 }
 
@@ -565,8 +598,16 @@ canvas {
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(215, 187, 114, 0.09), transparent 72%);
+  background: radial-gradient(circle, rgba(207, 176, 106, 0.09), transparent 72%);
   pointer-events: none;
+}
+
+.graph-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 26%);
 }
 
 .graph-header {
@@ -637,7 +678,7 @@ canvas {
   gap: 0.3rem;
   padding: 0.2rem 0.34rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(17, 61, 37, 0.05);
   transition: transform var(--transition), border-color var(--transition), background var(--transition);
 }
@@ -657,7 +698,7 @@ canvas {
   width: 0.62rem;
   height: 0.62rem;
   border-radius: 999px;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.86);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
 }
 
 .graph-shell,
@@ -676,13 +717,27 @@ canvas {
     linear-gradient(90deg, rgba(17, 61, 37, 0.045) 1px, transparent 1px),
     linear-gradient(180deg, rgba(252, 250, 244, 0.95), rgba(255, 255, 255, 0.99));
   background-size: 100% 20%, 12.5% 100%, auto;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -18px 34px rgba(13, 47, 31, 0.015);
 }
 
 .leaderboard-table {
   display: grid;
   gap: 0.82rem;
   font-variant-numeric: tabular-nums;
+  position: relative;
+  overflow: hidden;
+  background-image:
+    linear-gradient(180deg, rgba(255, 251, 242, 0.24), rgba(247, 242, 232, 0.1)),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 7px,
+      rgba(104, 84, 51, 0.012) 7px,
+      rgba(104, 84, 51, 0.012) 8px
+    );
+  background-blend-mode: soft-light;
 }
 
 .table-row {
@@ -693,7 +748,7 @@ canvas {
   padding: 0.82rem 0.95rem;
   border-radius: var(--radius-md);
   border: 1px solid rgba(17, 61, 37, 0.07);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.74);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
@@ -718,7 +773,7 @@ canvas {
 
 .featured {
   background:
-    linear-gradient(90deg, rgba(215, 187, 114, 0.14), rgba(255, 255, 255, 0.82)),
+    linear-gradient(90deg, rgba(207, 176, 106, 0.14), rgba(255, 255, 255, 0.84)),
     rgba(255, 255, 255, 0.75);
   border-color: rgba(185, 150, 66, 0.18);
 }
@@ -811,9 +866,11 @@ canvas {
   border-radius: var(--radius-lg);
   border: 1px solid rgba(17, 61, 37, 0.08);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(250, 247, 239, 0.94)),
-    rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(249, 245, 238, 0.95)),
+    rgba(255, 255, 255, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 14px 28px rgba(10, 33, 21, 0.05);
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 
@@ -823,6 +880,23 @@ canvas {
   inset: auto 0 0 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(215, 187, 114, 0.55), transparent);
+}
+
+.roster-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 245, 0.16), transparent 28%),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 8px,
+      rgba(103, 83, 50, 0.012) 8px,
+      rgba(103, 83, 50, 0.012) 9px
+    );
+  opacity: 0.42;
 }
 
 .roster-top {
@@ -864,7 +938,7 @@ canvas {
   display: grid;
   gap: 0.26rem;
   padding: 0.58rem 0;
-  border-bottom: 1px solid rgba(17, 61, 37, 0.08);
+  border-bottom: 1px solid rgba(17, 61, 37, 0.07);
   transition: background var(--transition), transform var(--transition);
 }
 
@@ -882,7 +956,7 @@ canvas {
   padding-inline: 0.45rem;
   border-radius: 14px;
   background:
-    linear-gradient(90deg, rgba(215, 187, 114, 0.11), transparent 66%),
+    linear-gradient(90deg, rgba(207, 176, 106, 0.12), transparent 66%),
     rgba(255, 255, 255, 0.35);
 }
 
@@ -933,7 +1007,7 @@ canvas {
   align-items: center;
   border-radius: 999px;
   padding: 0.24rem 0.42rem;
-  background: rgba(255, 255, 255, 0.76);
+  background: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(17, 61, 37, 0.06);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
@@ -1017,7 +1091,7 @@ canvas {
   }
 
   .dashboard-grid {
-    gap: 1.15rem;
+    gap: 1rem;
   }
 
 }
@@ -1025,7 +1099,7 @@ canvas {
 @media (max-width: 680px) {
   .hero {
     gap: 0.95rem;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1rem;
   }
 
   .hero-copy {
@@ -1052,7 +1126,7 @@ canvas {
   }
 
   .leader-podium {
-    padding: 0.74rem 0.72rem 0.78rem;
+    padding: 0.64rem 0.66rem 0.68rem;
   }
 
   .first {
@@ -1332,7 +1406,7 @@ canvas {
 
 
   .leader-podium {
-    padding: 0.64rem 0.6rem 0.68rem;
+    padding: 0.56rem 0.54rem 0.6rem;
   }
 
   .rank-badge {
