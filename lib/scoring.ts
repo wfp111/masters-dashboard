@@ -46,6 +46,7 @@ function buildRosterGolfer(pickName: string, livePlayer?: NormalizedGolfer): Ros
       name: pickName,
       totalToPar: null,
       today: null,
+      thru: "",
       rounds: [null, null, null, null],
       status: "missing",
       countingTowardBestFour: false,
@@ -56,6 +57,7 @@ function buildRosterGolfer(pickName: string, livePlayer?: NormalizedGolfer): Ros
     name: livePlayer.name,
     totalToPar: livePlayer.totalToPar,
     today: livePlayer.today,
+    thru: livePlayer.thru,
     rounds: livePlayer.rounds,
     status: livePlayer.status,
     countingTowardBestFour: false,
@@ -75,6 +77,10 @@ function calculateGraphPoints(golfers: RosterGolferResponseItem[]): GraphSeriesI
     const roundCandidates = golfers
       .map((golfer) => {
         if (golfer.status === "wd") {
+          return null;
+        }
+
+        if (golfer.rounds[roundIndex] === null) {
           return null;
         }
 
@@ -108,6 +114,20 @@ function calculateGraphPoints(golfers: RosterGolferResponseItem[]): GraphSeriesI
   }
 
   return points;
+}
+
+function getLatestStartedRoundIndex(liveData: NormalizedTournamentData): number {
+  let latestStartedRoundIndex = -1;
+
+  for (const player of liveData.players) {
+    for (let roundIndex = 0; roundIndex < player.rounds.length; roundIndex += 1) {
+      if (player.rounds[roundIndex] !== null) {
+        latestStartedRoundIndex = Math.max(latestStartedRoundIndex, roundIndex);
+      }
+    }
+  }
+
+  return latestStartedRoundIndex;
 }
 
 function buildScoredParticipant(participant: ParticipantPickSet, golferLookup: Map<string, NormalizedGolfer>): Omit<ScoredParticipant, "rank" | "movement"> {
@@ -158,6 +178,7 @@ export function buildLiveScoresResponse(
   participantPicks: ParticipantPickSet[],
 ): LiveScoresResponse {
   const golferLookup = new Map(liveData.players.map((player) => [toLookupKey(player.name), player]));
+  const latestStartedRoundIndex = getLatestStartedRoundIndex(liveData);
   const rankedParticipants = rankParticipants(
     participantPicks.map((participant) => buildScoredParticipant(participant, golferLookup)),
   );
@@ -184,7 +205,10 @@ export function buildLiveScoresResponse(
     })),
     graphSeries: rankedParticipants.map((participant) => ({
       name: participant.name,
-      points: participant.graphPoints,
+      points:
+        latestStartedRoundIndex >= 0
+          ? participant.graphPoints.slice(0, latestStartedRoundIndex + 2)
+          : participant.graphPoints.slice(0, 1),
     })),
   };
 }

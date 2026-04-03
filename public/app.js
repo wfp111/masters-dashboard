@@ -1,4 +1,4 @@
-const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+const REFRESH_INTERVAL_MS = 2 * 60 * 1000;
 
 const CHART_COLORS = [
   "#0f4d2f",
@@ -30,6 +30,14 @@ const elements = {
 };
 
 let progressChart = null;
+
+function toAnchorId(value) {
+  return `roster-${String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")}`;
+}
 
 function formatScore(value) {
   if (value === null || value === undefined) {
@@ -67,6 +75,26 @@ function formatMovement(value) {
   return value > 0 ? `+${value}` : `${value}`;
 }
 
+function formatThru(value, status) {
+  if (status === "wd") {
+    return "WD";
+  }
+
+  if (status === "cut") {
+    return "CUT";
+  }
+
+  if (!value) {
+    return "";
+  }
+
+  if (value === "F") {
+    return "Finished";
+  }
+
+  return `Thru ${value}`;
+}
+
 function scoreToneClass(value) {
   if (value === null || value === undefined || value === 0) {
     return "";
@@ -79,6 +107,12 @@ function movementClass(value) {
   if (value > 0) return "up";
   if (value < 0) return "down";
   return "steady";
+}
+
+function movementSymbol(value) {
+  if (value > 0) return "&#9650;";
+  if (value < 0) return "&#9660;";
+  return "&bull;";
 }
 
 function formatTimestamp(value) {
@@ -161,10 +195,10 @@ function renderStandings(standings) {
       (entry, index) => `
         <article class="table-row ${index === 0 ? "featured" : ""}" role="row">
           <span class="rank-badge">${entry.rank}</span>
-          <span class="player-name">${entry.name}</span>
+          <a class="player-name player-link" href="#${toAnchorId(entry.name)}">${entry.name}</a>
           <span class="score total-score score-emphasis ${scoreToneClass(entry.bestFourTotal)}">${formatScore(entry.bestFourTotal)}</span>
           <span class="score daily-score ${scoreToneClass(entry.today)}">${formatScore(entry.today)}</span>
-          <span class="movement ${movementClass(entry.movement)}">${entry.movement > 0 ? "▲" : entry.movement < 0 ? "▼" : "•"} ${formatMovement(entry.movement)}</span>
+          <span class="movement ${movementClass(entry.movement)}">${movementSymbol(entry.movement)} ${formatMovement(entry.movement)}</span>
         </article>
       `,
     )
@@ -189,7 +223,7 @@ function renderRosters(rosters, standings) {
       const standing = standingsLookup.get(roster.name);
 
       return `
-        <article class="roster-card">
+        <article class="roster-card" id="${toAnchorId(roster.name)}">
           <div class="roster-top">
             <h3>${roster.name}</h3>
             <span class="roster-score">TOP 4: ${formatScore(standing?.bestFourTotal ?? null)}</span>
@@ -205,6 +239,7 @@ function renderRosters(rosters, standings) {
                       <span class="golfer-today">Today ${formatScore(golfer.today)}</span>
                     </div>
                     <span class="round-breakdown">
+                      ${formatThru(golfer.thru, golfer.status) ? `<span class="round-chip thru-chip">${formatThru(golfer.thru, golfer.status)}</span>` : ""}
                       <span class="round-chip">R1 ${formatScore(golfer.rounds?.[0] ?? null)}</span>
                       <span class="round-chip">R2 ${formatScore(golfer.rounds?.[1] ?? null)}</span>
                       <span class="round-chip">R3 ${formatScore(golfer.rounds?.[2] ?? null)}</span>
@@ -248,7 +283,8 @@ function renderGraph(graphSeries) {
     borderColor: CHART_COLORS[index % CHART_COLORS.length],
     backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
     borderWidth: 2,
-    tension: 0.32,
+    tension: 0.58,
+    cubicInterpolationMode: "monotone",
     pointRadius: 3,
     pointHoverRadius: 5,
     spanGaps: true,

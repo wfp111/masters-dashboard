@@ -800,6 +800,24 @@ canvas {
   line-height: 1.18;
 }
 
+.player-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition), opacity var(--transition);
+}
+
+.player-link:hover,
+.player-link:focus-visible {
+  color: var(--green-700);
+  opacity: 0.92;
+}
+
+.player-link:focus-visible {
+  outline: 2px solid rgba(184, 142, 58, 0.28);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 .score {
   font-size: 0.9rem;
   font-weight: 800;
@@ -872,6 +890,7 @@ canvas {
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
     0 14px 28px rgba(10, 33, 21, 0.05);
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  scroll-margin-top: 1rem;
 }
 
 .roster-card::after {
@@ -1010,6 +1029,13 @@ canvas {
   background: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(17, 61, 37, 0.06);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.round-breakdown .thru-chip {
+  color: var(--green-800);
+  background: linear-gradient(180deg, rgba(207, 176, 106, 0.16), rgba(255, 255, 255, 0.88));
+  border-color: rgba(184, 142, 58, 0.14);
+  font-weight: 800;
 }
 
 .status-text {

@@ -44,6 +44,7 @@ export interface RosterGolferResponseItem {
   name: string;
   totalToPar: number | null;
   today: number | null;
+  thru: string;
   rounds: [RoundScore, RoundScore, RoundScore, RoundScore];
   status: GolferStatus;
   countingTowardBestFour: boolean;
