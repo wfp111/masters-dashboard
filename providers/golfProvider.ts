@@ -360,38 +360,50 @@ function calculateTodayScore(player: UnknownRecord, rounds: [number | null, numb
     return explicitToday;
   }
 
+  const roundSource = getArray(getRecordValue(player, ["rounds", "round", "scorecards", "scores"]));
+  const normalizedRounds = roundSource
+    .map((item) => getRecord(item))
+    .filter((round): round is UnknownRecord => Boolean(round))
+    .sort((left, right) => {
+      const leftSequence = getNumber(getRecordValue(left, ["number", "round", "sequence"])) ?? 0;
+      const rightSequence = getNumber(getRecordValue(right, ["number", "round", "sequence"])) ?? 0;
+      return rightSequence - leftSequence;
+    });
+
+  const latestRound = normalizedRounds[0];
+  if (latestRound) {
+    const latestThru = getNumber(getRecordValue(latestRound, ["thru", "holes_completed"])) ?? 0;
+    const latestStrokes = getNumber(getRecordValue(latestRound, ["strokes", "total_strokes"])) ?? 0;
+    const latestScore = getNumber(getRecordValue(latestRound, ["score", "score_to_par", "to_par"])) ?? 0;
+
+    // Sportradar includes a placeholder current round with zeros before a player starts.
+    // In that case, today's score should remain unavailable until play begins.
+    if (latestThru === 0 && latestStrokes === 0 && latestScore === 0) {
+      return null;
+    }
+  }
+
   const currentRound = getNumber(getRecordValue(player, ["current_round", "round"]));
   if (currentRound !== null && currentRound >= 1 && currentRound <= 4) {
-    const roundNode = getArray(getRecordValue(player, ["rounds", "round", "scorecards", "scores"])).find((item) => {
-      const roundRecord = getRecord(item);
+    const roundNode = normalizedRounds.find((roundRecord) => {
       return getNumber(getRecordValue(roundRecord, ["number", "round", "sequence"])) === currentRound;
     });
 
-    const roundRecord = getRecord(roundNode);
     const scoreToPar =
-      getNumber(getRecordValue(roundRecord, ["score", "score_to_par", "to_par"])) ??
-      getNumber(getRecordValue(getRecord(roundRecord?.scorecard), ["score", "score_to_par", "to_par"]));
+      getNumber(getRecordValue(roundNode, ["score", "score_to_par", "to_par"])) ??
+      getNumber(getRecordValue(getRecord(roundNode?.scorecard), ["score", "score_to_par", "to_par"]));
 
     if (scoreToPar !== null) {
       return scoreToPar;
     }
   }
 
-  const roundSource = getArray(getRecordValue(player, ["rounds", "round", "scorecards", "scores"]));
-  const latestStartedRound = roundSource
-    .map((item) => getRecord(item))
-    .filter((round): round is UnknownRecord => Boolean(round))
-    .filter((round) => {
-      const thru = getNumber(getRecordValue(round, ["thru", "holes_completed"])) ?? 0;
-      const strokes = getNumber(getRecordValue(round, ["strokes", "total_strokes"])) ?? 0;
-      const score = getNumber(getRecordValue(round, ["score", "score_to_par", "to_par"])) ?? 0;
-      return thru > 0 || strokes > 0 || score !== 0;
-    })
-    .sort((left, right) => {
-      const leftSequence = getNumber(getRecordValue(left, ["number", "round", "sequence"])) ?? 0;
-      const rightSequence = getNumber(getRecordValue(right, ["number", "round", "sequence"])) ?? 0;
-      return rightSequence - leftSequence;
-    })[0];
+  const latestStartedRound = normalizedRounds.find((round) => {
+    const thru = getNumber(getRecordValue(round, ["thru", "holes_completed"])) ?? 0;
+    const strokes = getNumber(getRecordValue(round, ["strokes", "total_strokes"])) ?? 0;
+    const score = getNumber(getRecordValue(round, ["score", "score_to_par", "to_par"])) ?? 0;
+    return thru > 0 || strokes > 0 || score !== 0;
+  });
 
   if (latestStartedRound) {
     const latestScore = getNumber(getRecordValue(latestStartedRound, ["score", "score_to_par", "to_par"]));
@@ -414,18 +426,30 @@ function deriveThruFromRounds(player: UnknownRecord): string {
       return rightSequence - leftSequence;
     });
 
-  const latestRound = roundSource.find((round) => {
+  const newestRound = roundSource[0];
+  if (newestRound) {
+    const latestThru = getNumber(getRecordValue(newestRound, ["thru", "holes_completed"])) ?? 0;
+    const latestStrokes = getNumber(getRecordValue(newestRound, ["strokes", "total_strokes"])) ?? 0;
+    const latestScore = getNumber(getRecordValue(newestRound, ["score", "score_to_par", "to_par"])) ?? 0;
+    const latestSequence = getNumber(getRecordValue(newestRound, ["number", "round", "sequence"])) ?? 0;
+
+    if (latestSequence > 1 && latestThru === 0 && latestStrokes === 0 && latestScore === 0) {
+      return "";
+    }
+  }
+
+  const latestStartedRound = roundSource.find((round) => {
     const thru = getNumber(getRecordValue(round, ["thru", "holes_completed"])) ?? 0;
     const strokes = getNumber(getRecordValue(round, ["strokes", "total_strokes"])) ?? 0;
     const score = getNumber(getRecordValue(round, ["score", "score_to_par", "to_par"])) ?? 0;
     return thru > 0 || strokes > 0 || score !== 0;
   });
 
-  if (!latestRound) {
+  if (!latestStartedRound) {
     return "";
   }
 
-  const thru = getNumber(getRecordValue(latestRound, ["thru", "holes_completed"]));
+  const thru = getNumber(getRecordValue(latestStartedRound, ["thru", "holes_completed"]));
   if (thru === 18) {
     return "F";
   }

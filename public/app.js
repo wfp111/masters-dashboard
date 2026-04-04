@@ -31,12 +31,154 @@ const elements = {
 
 let progressChart = null;
 
+const WIKIPEDIA_SUMMARY_BASE = "https://en.wikipedia.org/api/rest_v1/page/summary";
+const WIKIPEDIA_SEARCH_BASE = "https://en.wikipedia.org/w/api.php?action=opensearch&limit=1&namespace=0&format=json&origin=*";
+const CLIENT_HEADSHOT_TITLE_MAP = {
+  "tommy fleetwood": "Tommy Fleetwood",
+  "hideki matsuyama": "Hideki Matsuyama",
+  "maverick mcnealy": "Maverick McNealy",
+  "sepp straka": "Sepp Straka",
+  "tony finau": "Tony Finau",
+  "alex noren": "Alex Noren",
+  "ludvig aberg": "Ludvig ?berg",
+  "ludvig ?berg": "Ludvig ?berg",
+  "collin morikawa": "Collin Morikawa",
+  "rickie fowler": "Rickie Fowler",
+  "si woo kim": "Kim Si-woo",
+  "brian harman": "Brian Harman",
+  "keith mitchell": "Keith Mitchell (golfer)",
+  "russell henley": "Russell Henley",
+  "jordan spieth": "Jordan Spieth",
+  "robert macintyre": "Robert MacIntyre",
+  "j.j. spaun": "J. J. Spaun",
+  "daniel berger": "Daniel Berger",
+  "gary woodland": "Gary Woodland",
+  "scottie scheffler": "Scottie Scheffler",
+  "rory mcilroy": "Rory McIlroy",
+  "jon rahm": "Jon Rahm",
+  "xander schauffele": "Xander Schauffele",
+  "viktor hovland": "Viktor Hovland",
+  "brooks koepka": "Brooks Koepka",
+  "justin thomas": "Justin Thomas",
+  "patrick cantlay": "Patrick Cantlay",
+  "shane lowry": "Shane Lowry",
+  "cameron smith": "Cameron Smith",
+  "max homa": "Max Homa",
+  "adam scott": "Adam Scott",
+  "tom kim": "Tom Kim"
+};
+const clientHeadshotCache = new Map();
+
 function toAnchorId(value) {
   return `roster-${String(value)
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")}`;
+}
+
+function getInitials(value) {
+  return String(value)
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+function getHeadshotTitle(value) {
+  return CLIENT_HEADSHOT_TITLE_MAP[String(value).trim().toLowerCase()] ?? value;
+}
+
+async function fetchClientHeadshotUrl(name) {
+  const key = String(name).trim().toLowerCase();
+
+  if (clientHeadshotCache.has(key)) {
+    return clientHeadshotCache.get(key);
+  }
+
+  const title = getHeadshotTitle(name);
+  const fromSummary = await fetchClientHeadshotFromSummary(title);
+  if (fromSummary) {
+    clientHeadshotCache.set(key, fromSummary);
+    return fromSummary;
+  }
+
+  const searchedTitle = await searchClientHeadshotTitle(name);
+  if (!searchedTitle) {
+    clientHeadshotCache.set(key, null);
+    return null;
+  }
+
+  const searchedUrl = await fetchClientHeadshotFromSummary(searchedTitle);
+  clientHeadshotCache.set(key, searchedUrl);
+  return searchedUrl;
+}
+
+async function fetchClientHeadshotFromSummary(title) {
+  const endpoint = WIKIPEDIA_SUMMARY_BASE + "/" + encodeURIComponent(title);
+
+  try {
+    const response = await fetch(endpoint, {
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    return data?.thumbnail?.source ?? data?.originalimage?.source ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function searchClientHeadshotTitle(name) {
+  const endpoint = WIKIPEDIA_SEARCH_BASE + "&search=" + encodeURIComponent(String(name) + " golfer");
+
+  try {
+    const response = await fetch(endpoint, {
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    const titles = Array.isArray(data) ? data[1] : null;
+    return Array.isArray(titles) && typeof titles[0] === "string" ? titles[0] : null;
+  } catch {
+    return null;
+  }
+}
+
+async function hydrateRosterHeadshots() {
+  const fallbacks = [...document.querySelectorAll(".golfer-headshot-fallback[data-headshot-name]")];
+
+  await Promise.all(
+    fallbacks.map(async (fallback) => {
+      const name = fallback.getAttribute("data-headshot-name");
+      if (!name) {
+        return;
+      }
+
+      const url = await fetchClientHeadshotUrl(name);
+      if (!url || !fallback.parentElement) {
+        return;
+      }
+
+      const img = document.createElement("img");
+      img.className = "golfer-headshot";
+      img.src = url;
+      img.alt = name;
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.referrerPolicy = "no-referrer";
+      fallback.replaceWith(img);
+    }),
+  );
 }
 
 function formatScore(value) {
@@ -93,6 +235,26 @@ function formatThru(value, status) {
   }
 
   return `Thru ${value}`;
+}
+
+function formatRosterToday(value, thru, status) {
+  if (status === "active" && !thru) {
+    return "--";
+  }
+
+  return formatScore(value);
+}
+
+function formatRoundScore(value) {
+  if (value === null || value === undefined) {
+    return "--";
+  }
+
+  if (value === 0) {
+    return "E";
+  }
+
+  return String(value);
 }
 
 function scoreToneClass(value) {
@@ -234,16 +396,27 @@ function renderRosters(rosters, standings) {
                 (golfer) => `
                   <li class="${golfer.countingTowardBestFour ? "counting" : ""}">
                     <div class="golfer-summary">
-                      <span class="golfer-name">${golfer.name}</span>
-                      <strong class="golfer-total">${formatScore(golfer.totalToPar)}</strong>
-                      <span class="golfer-today">Today ${formatScore(golfer.today)}</span>
+                      <span class="golfer-heading">
+                        <span class="golfer-identity">
+                          <span class="golfer-headshot-frame">
+                            ${golfer.headshotUrl ? `<img class="golfer-headshot" src="${golfer.headshotUrl}" alt="${golfer.name}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />` : `<span class="golfer-headshot-fallback" data-headshot-name="${golfer.name}">${getInitials(golfer.name)}</span>`}
+                          </span>
+                          <span class="golfer-name">${golfer.name}</span>
+                        </span>
+                      </span>
+                      <strong class="golfer-total-bubble">${formatScore(golfer.totalToPar)}</strong>
+                      <div class="golfer-meta">
+                        <span class="golfer-side">
+                          <span class="golfer-today">Today ${formatRosterToday(golfer.today, golfer.thru, golfer.status)}</span>
+                          ${formatThru(golfer.thru, golfer.status) ? `<span class="golfer-thru">${formatThru(golfer.thru, golfer.status)}</span>` : ""}
+                        </span>
+                      </div>
                     </div>
                     <span class="round-breakdown">
-                      ${formatThru(golfer.thru, golfer.status) ? `<span class="round-chip thru-chip">${formatThru(golfer.thru, golfer.status)}</span>` : ""}
-                      <span class="round-chip">R1 ${formatScore(golfer.rounds?.[0] ?? null)}</span>
-                      <span class="round-chip">R2 ${formatScore(golfer.rounds?.[1] ?? null)}</span>
-                      <span class="round-chip">R3 ${formatScore(golfer.rounds?.[2] ?? null)}</span>
-                      <span class="round-chip">R4 ${formatScore(golfer.rounds?.[3] ?? null)}</span>
+                      <span class="round-chip">R1: ${formatRoundScore(golfer.rounds?.[0] ?? null)}</span>
+                      <span class="round-chip">R2: ${formatRoundScore(golfer.rounds?.[1] ?? null)}</span>
+                      <span class="round-chip">R3: ${formatRoundScore(golfer.rounds?.[2] ?? null)}</span>
+                      <span class="round-chip">R4: ${formatRoundScore(golfer.rounds?.[3] ?? null)}</span>
                     </span>
                   </li>
                 `,
@@ -257,6 +430,27 @@ function renderRosters(rosters, standings) {
 
   elements.rostersGrid.hidden = false;
   setPanelState(elements.rostersState, "", "loading", true);
+  void hydrateRosterHeadshots();
+}
+
+function getCurrentRoundFromRosters(rosters) {
+  if (!Array.isArray(rosters) || rosters.length === 0) {
+    return 1;
+  }
+
+  let latestStartedRound = 1;
+
+  for (const roster of rosters) {
+    for (const golfer of roster.golfers ?? []) {
+      const startedRounds = Array.isArray(golfer.rounds)
+        ? golfer.rounds.filter((round) => round !== null && round !== undefined).length
+        : 0;
+
+      latestStartedRound = Math.max(latestStartedRound, Math.min(Math.max(startedRounds, 1), 4));
+    }
+  }
+
+  return latestStartedRound;
 }
 
 function renderGraphLegend(graphSeries) {
@@ -269,26 +463,36 @@ function renderGraphLegend(graphSeries) {
     .join("");
 }
 
-function renderGraph(graphSeries) {
+function renderGraph(graphSeries, rosters) {
   if (!graphSeries?.length) {
     elements.chartWrap.hidden = true;
     setPanelState(elements.graphState, "No graph data is available yet.", "empty");
     return;
   }
 
-  const labels = graphSeries[0].points.map((point) => point.label);
-  const datasets = graphSeries.map((series, index) => ({
-    label: series.name,
-    data: series.points.map((point) => point.value),
-    borderColor: CHART_COLORS[index % CHART_COLORS.length],
-    backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
-    borderWidth: 2,
-    tension: 0.58,
-    cubicInterpolationMode: "monotone",
-    pointRadius: 3,
-    pointHoverRadius: 5,
-    spanGaps: true,
-  }));
+  const currentRound = getCurrentRoundFromRosters(rosters);
+
+  const datasets = graphSeries.map((series, index) => {
+    const totalPoints = Math.max(series.points.length - 1, 1);
+    const data = series.points.map((point, pointIndex) => ({
+      x: pointIndex === 0 ? 0 : (pointIndex / totalPoints) * currentRound,
+      y: point.value,
+    }));
+
+    return {
+      label: series.name,
+      data,
+      borderColor: CHART_COLORS[index % CHART_COLORS.length],
+      backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+      borderWidth: 2.5,
+      tension: 0.58,
+      cubicInterpolationMode: "monotone",
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      pointHitRadius: 10,
+      spanGaps: true,
+    };
+  });
 
   if (progressChart) {
     progressChart.destroy();
@@ -296,7 +500,7 @@ function renderGraph(graphSeries) {
 
   progressChart = new window.Chart(elements.chartCanvas, {
     type: "line",
-    data: { labels, datasets },
+    data: { datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -321,11 +525,22 @@ function renderGraph(graphSeries) {
       },
       scales: {
         x: {
+          type: "linear",
+          min: 0,
+          max: currentRound,
           grid: {
             color: "rgba(15, 77, 47, 0.08)",
           },
           ticks: {
             color: "#617567",
+            stepSize: 1,
+            callback(value) {
+              if (value < 1 || value > currentRound || !Number.isInteger(value)) {
+                return "";
+              }
+
+              return `Round ${value}`;
+            },
           },
         },
         y: {
@@ -348,7 +563,6 @@ function renderGraph(graphSeries) {
   elements.chartWrap.hidden = false;
   setPanelState(elements.graphState, "", "loading", true);
 }
-
 async function getLiveScores() {
   const response = await fetch("/api/live-scores", {
     headers: {
@@ -379,7 +593,7 @@ function renderLiveData(data) {
   renderLeaders(data.leaders);
   renderStandings(data.standings);
   renderRosters(data.rosters, data.standings);
-  renderGraph(data.graphSeries);
+  renderGraph(data.graphSeries, data.rosters);
 
   const formattedUpdated = formatTimestamp(data.updatedAt);
   elements.lastSync.textContent = formattedUpdated;

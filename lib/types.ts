@@ -48,6 +48,7 @@ export interface RosterGolferResponseItem {
   rounds: [RoundScore, RoundScore, RoundScore, RoundScore];
   status: GolferStatus;
   countingTowardBestFour: boolean;
+  headshotUrl?: string | null;
 }
 
 export interface RosterResponseItem {

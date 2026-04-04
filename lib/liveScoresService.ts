@@ -2,6 +2,7 @@ import { PARTICIPANT_PICKS } from "../data/picks";
 import { VALERO_PARTICIPANT_PICKS } from "../data/valeroPicks";
 import { buildLiveScoresResponse } from "./scoring";
 import { getGolfData } from "../providers/golfProvider";
+import { enrichPayloadWithHeadshots } from "./headshots";
 import type { LiveScoresResponse } from "./types";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -69,9 +70,26 @@ function formatHistoryLabel(updatedAt: string, historyLength: number): string {
 }
 
 function buildSnapshotKey(payload: LiveScoresResponse): string {
-  return `${payload.updatedAt}|${payload.standings
-    .map((entry) => `${entry.name}:${entry.bestFourTotal ?? "null"}`)
-    .join("|")}`;
+  return payload.standings
+    .map((entry) => `${entry.name}:${entry.bestFourTotal ?? "null"}:${entry.today ?? "null"}:${entry.rank}`)
+    .join("|");
+}
+
+function collapseDuplicateSnapshots(snapshots: HistorySnapshot[]): HistorySnapshot[] {
+  const collapsed: HistorySnapshot[] = [];
+
+  for (const snapshot of snapshots) {
+    const previous = collapsed[collapsed.length - 1];
+
+    if (previous?.key === snapshot.key) {
+      collapsed[collapsed.length - 1] = snapshot;
+      continue;
+    }
+
+    collapsed.push(snapshot);
+  }
+
+  return collapsed;
 }
 
 async function ensureGraphHistoryLoaded(): Promise<void> {
@@ -88,11 +106,13 @@ async function ensureGraphHistoryLoaded(): Promise<void> {
     for (const [historyKey, snapshots] of Object.entries(parsed)) {
       graphHistoryByMode.set(
         historyKey,
-        snapshots.map((snapshot) => ({
-          key: snapshot.key,
-          label: snapshot.label,
-          values: new Map(Object.entries(snapshot.values)),
-        })),
+        collapseDuplicateSnapshots(
+          snapshots.map((snapshot) => ({
+            key: snapshot.key,
+            label: snapshot.label,
+            values: new Map(Object.entries(snapshot.values)),
+          })),
+        ),
       );
     }
   } catch (error) {
@@ -137,9 +157,15 @@ async function applyGraphHistory(payload: LiveScoresResponse, mode: "mock" | "va
       label: formatHistoryLabel(payload.updatedAt, history.length),
       values: new Map(payload.standings.map((entry) => [entry.name, entry.bestFourTotal])),
     });
+  } else {
+    history[history.length - 1] = {
+      key: snapshotKey,
+      label: formatHistoryLabel(payload.updatedAt, history.length - 1),
+      values: new Map(payload.standings.map((entry) => [entry.name, entry.bestFourTotal])),
+    };
   }
 
-  const trimmedHistory = history.slice(-MAX_GRAPH_HISTORY_POINTS);
+  const trimmedHistory = collapseDuplicateSnapshots(history).slice(-MAX_GRAPH_HISTORY_POINTS);
   graphHistoryByMode.set(historyKey, trimmedHistory);
   await persistGraphHistory();
 
@@ -169,7 +195,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
       tournamentName: "Masters Tournament",
       seedPrefix: "masters",
     });
-    const payload = await applyGraphHistory(buildLiveScoresResponse(mockData, picks), mode);
+    const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(mockData, picks)), mode);
     lastValidPayload = payload;
     return payload;
   }
@@ -185,7 +211,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
           tournamentId: valeroLiveConfig.tournamentId,
           baseUrl: valeroLiveConfig.baseUrl,
         });
-        const payload = await applyGraphHistory(buildLiveScoresResponse(liveValeroData, picks), mode);
+        const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(liveValeroData, picks)), mode);
         lastValidPayload = payload;
         return payload;
       } catch (error) {
@@ -199,14 +225,14 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
       tournamentName: "Valero Texas Open",
       seedPrefix: "valero",
     });
-    const payload = await applyGraphHistory(buildLiveScoresResponse(practiceData, picks), mode);
+    const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(practiceData, picks)), mode);
     lastValidPayload = payload;
     return payload;
   }
 
   try {
     const liveData = await getGolfData({ mode: "live", picks });
-    const payload = await applyGraphHistory(buildLiveScoresResponse(liveData, picks), mode);
+    const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(liveData, picks)), mode);
     lastValidPayload = payload;
     return payload;
   } catch (error) {
@@ -222,7 +248,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
       tournamentName: "Masters Tournament",
       seedPrefix: "masters",
     });
-    const payload = await applyGraphHistory(buildLiveScoresResponse(mockData, PARTICIPANT_PICKS), "mock");
+    const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(mockData, PARTICIPANT_PICKS)), "mock");
     lastValidPayload = payload;
     return payload;
   }
