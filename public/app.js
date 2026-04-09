@@ -500,7 +500,7 @@ function renderGraph(graphSeries, rosters) {
       borderColor: CHART_COLORS[index % CHART_COLORS.length],
       backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
       borderWidth: 2.5,
-      tension: 0.58,
+      tension: 0.74,
       cubicInterpolationMode: "monotone",
       pointRadius: 0,
       pointHoverRadius: 0,
