@@ -217,7 +217,7 @@ function formatMovement(value) {
   return value > 0 ? `+${value}` : `${value}`;
 }
 
-function formatThru(value, status) {
+function formatThru(value, status, today) {
   if (status === "wd") {
     return "WD";
   }
@@ -227,7 +227,7 @@ function formatThru(value, status) {
   }
 
   if (!value) {
-    return "";
+    return typeof today === "number" ? "Finished" : "";
   }
 
   if (value === "F") {
@@ -238,7 +238,7 @@ function formatThru(value, status) {
 }
 
 function formatRosterToday(value, thru, status) {
-  if (status === "active" && !thru) {
+  if (status === "active" && !thru && value === null) {
     return "--";
   }
 
@@ -408,7 +408,7 @@ function renderRosters(rosters, standings) {
                       <div class="golfer-meta">
                         <span class="golfer-side">
                           <span class="golfer-today">Today ${formatRosterToday(golfer.today, golfer.thru, golfer.status)}</span>
-                          ${formatThru(golfer.thru, golfer.status) ? `<span class="golfer-thru">${formatThru(golfer.thru, golfer.status)}</span>` : ""}
+                          ${formatThru(golfer.thru, golfer.status, golfer.today) ? `<span class="golfer-thru">${formatThru(golfer.thru, golfer.status, golfer.today)}</span>` : ""}
                         </span>
                       </div>
                     </div>

@@ -636,12 +636,43 @@
     {
       "key": "Dom:-2:null:1|Kyle:-2:null:2|Matt:-2:null:3|Will:0:null:4",
       "label": "9:33 AM",
-      "round": 1,
       "values": {
         "Dom": -2,
         "Kyle": -2,
         "Matt": -2,
         "Will": 0
+      }
+    },
+    {
+      "key": "Kyle:-3:null:1|Matt:-3:null:2|Will:0:null:3|Dom:1:null:4",
+      "label": "9:58 AM",
+      "values": {
+        "Kyle": -3,
+        "Matt": -3,
+        "Will": 0,
+        "Dom": 1
+      }
+    },
+    {
+      "key": "Kyle:-3:-3:1|Matt:-3:-3:2|Will:0:0:3|Dom:1:1:4",
+      "label": "10:02 AM",
+      "round": 1,
+      "values": {
+        "Kyle": -3,
+        "Matt": -3,
+        "Will": 0,
+        "Dom": 1
+      }
+    },
+    {
+      "key": "Matt:-3:-3:1|Kyle:-2:-2:2|Will:0:0:3|Dom:1:1:4",
+      "label": "10:03 AM",
+      "round": 1,
+      "values": {
+        "Matt": -3,
+        "Kyle": -2,
+        "Will": 0,
+        "Dom": 1
       }
     }
   ]

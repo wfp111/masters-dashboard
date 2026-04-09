@@ -371,16 +371,16 @@ function calculateTodayScore(player: UnknownRecord, rounds: [number | null, numb
     });
 
   const latestRound = normalizedRounds[0];
+  let hasPlaceholderUpcomingRound = false;
+
   if (latestRound) {
     const latestThru = getNumber(getRecordValue(latestRound, ["thru", "holes_completed"])) ?? 0;
     const latestStrokes = getNumber(getRecordValue(latestRound, ["strokes", "total_strokes"])) ?? 0;
     const latestScore = getNumber(getRecordValue(latestRound, ["score", "score_to_par", "to_par"])) ?? 0;
 
-    // Sportradar includes a placeholder current round with zeros before a player starts.
-    // In that case, today's score should remain unavailable until play begins.
-    if (latestThru === 0 && latestStrokes === 0 && latestScore === 0) {
-      return null;
-    }
+    // Sportradar often includes a zeroed-out upcoming round placeholder.
+    // We should ignore it and keep looking for the latest started round instead of blanking today's score.
+    hasPlaceholderUpcomingRound = latestThru === 0 && latestStrokes === 0 && latestScore === 0;
   }
 
   const currentRound = getNumber(getRecordValue(player, ["current_round", "round"]));
@@ -410,6 +410,10 @@ function calculateTodayScore(player: UnknownRecord, rounds: [number | null, numb
     if (latestScore !== null) {
       return latestScore;
     }
+  }
+
+  if (hasPlaceholderUpcomingRound) {
+    return null;
   }
 
   const lastKnownRound = [...rounds].reverse().find((score) => score !== null);
