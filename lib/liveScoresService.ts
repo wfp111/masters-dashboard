@@ -314,11 +314,12 @@ async function buildEnrichedPayload(
   picks: typeof PARTICIPANT_PICKS,
   mode: "mock" | "valero" | "live",
 ): Promise<LiveScoresResponse> {
+  const openingPayload = buildLiveScoresResponse(liveData, picks, []);
   const movementBaseline = await getMovementBaseline(
     mode,
     liveData.tournament,
     liveData.updatedAt,
-    picks.map((participant) => participant.name),
+    openingPayload.standings.map((entry) => entry.name),
   );
 
   const payload = buildLiveScoresResponse(liveData, picks, movementBaseline);
