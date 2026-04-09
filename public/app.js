@@ -86,6 +86,40 @@ function getInitials(value) {
     .join("");
 }
 
+function buildHeadshotFallbackMarkup(name) {
+  return `<span class="golfer-headshot-fallback" data-headshot-name="${name}">${getInitials(name)}</span>`;
+}
+
+function attachHeadshotFallback(img, name) {
+  img.addEventListener(
+    "error",
+    () => {
+      if (!img.parentElement) {
+        return;
+      }
+
+      img.replaceWith(createHeadshotFallbackElement(name));
+    },
+    { once: true },
+  );
+}
+
+function createHeadshotFallbackElement(name) {
+  const fallback = document.createElement("span");
+  fallback.className = "golfer-headshot-fallback";
+  fallback.setAttribute("data-headshot-name", name);
+  fallback.textContent = getInitials(name);
+  return fallback;
+}
+
+function bindRosterHeadshotFallbacks() {
+  const images = [...document.querySelectorAll(".golfer-headshot[data-headshot-name]")];
+
+  for (const img of images) {
+    attachHeadshotFallback(img, img.getAttribute("data-headshot-name") || img.alt || "");
+  }
+}
+
 function getHeadshotTitle(value) {
   return CLIENT_HEADSHOT_TITLE_MAP[String(value).trim().toLowerCase()] ?? value;
 }
@@ -176,6 +210,7 @@ async function hydrateRosterHeadshots() {
       img.loading = "lazy";
       img.decoding = "async";
       img.referrerPolicy = "no-referrer";
+      attachHeadshotFallback(img, name);
       fallback.replaceWith(img);
     }),
   );
@@ -399,7 +434,7 @@ function renderRosters(rosters, standings) {
                       <span class="golfer-heading">
                         <span class="golfer-identity">
                           <span class="golfer-headshot-frame">
-                            ${golfer.headshotUrl ? `<img class="golfer-headshot" src="${golfer.headshotUrl}" alt="${golfer.name}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />` : `<span class="golfer-headshot-fallback" data-headshot-name="${golfer.name}">${getInitials(golfer.name)}</span>`}
+                            ${golfer.headshotUrl ? `<img class="golfer-headshot" src="${golfer.headshotUrl}" alt="${golfer.name}" data-headshot-name="${golfer.name}" loading="lazy" decoding="async" referrerpolicy="no-referrer" />` : buildHeadshotFallbackMarkup(golfer.name)}
                           </span>
                           <span class="golfer-name">${golfer.name}</span>
                         </span>
@@ -430,6 +465,7 @@ function renderRosters(rosters, standings) {
 
   elements.rostersGrid.hidden = false;
   setPanelState(elements.rostersState, "", "loading", true);
+  bindRosterHeadshotFallbacks();
   void hydrateRosterHeadshots();
 }
 
