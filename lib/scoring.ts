@@ -9,6 +9,8 @@ import type {
 } from "./types";
 
 const MASTERS_PAR = 72;
+const WEEKEND_PENALTY_TO_PAR = 10;
+const WEEKEND_ROUND_INDEXES = [2, 3] as const;
 
 interface ScoredParticipant {
   name: string;
@@ -40,7 +42,41 @@ function sumNumbers(values: Array<number | null>): number | null {
   return filtered.reduce((total, value) => total + value, 0);
 }
 
-function buildRosterGolfer(pickName: string, livePlayer?: NormalizedGolfer): RosterGolferResponseItem {
+function sumRoundToPar(rounds: [number | null, number | null, number | null, number | null]): number | null {
+  const roundToParValues = rounds.map((roundScore) => (roundScore === null ? null : roundScore - MASTERS_PAR));
+  return sumNumbers(roundToParValues);
+}
+
+function applyWeekendPenalty(livePlayer: NormalizedGolfer, latestStartedRoundIndex: number) {
+  const adjustedRounds: [number | null, number | null, number | null, number | null] = [...livePlayer.rounds] as [number | null, number | null, number | null, number | null];
+  const penalizedRounds = new Set<number>();
+  const penaltyEligible = livePlayer.status === "wd" || livePlayer.status === "cut";
+
+  if (penaltyEligible) {
+    for (const roundIndex of WEEKEND_ROUND_INDEXES) {
+      if (latestStartedRoundIndex >= roundIndex && adjustedRounds[roundIndex] === null) {
+        adjustedRounds[roundIndex] = MASTERS_PAR + WEEKEND_PENALTY_TO_PAR;
+        penalizedRounds.add(roundIndex);
+      }
+    }
+  }
+
+  const baseTotal = typeof livePlayer.totalToPar === "number" ? livePlayer.totalToPar : sumRoundToPar(adjustedRounds);
+  const adjustedTotalToPar = baseTotal === null ? null : baseTotal + penalizedRounds.size * WEEKEND_PENALTY_TO_PAR;
+
+  let adjustedToday = livePlayer.today;
+  if (penalizedRounds.has(latestStartedRoundIndex)) {
+    adjustedToday = WEEKEND_PENALTY_TO_PAR;
+  }
+
+  return {
+    adjustedRounds,
+    adjustedTotalToPar,
+    adjustedToday,
+  };
+}
+
+function buildRosterGolfer(pickName: string, latestStartedRoundIndex: number, livePlayer?: NormalizedGolfer): RosterGolferResponseItem {
   if (!livePlayer) {
     return {
       name: pickName,
@@ -53,12 +89,14 @@ function buildRosterGolfer(pickName: string, livePlayer?: NormalizedGolfer): Ros
     };
   }
 
+  const { adjustedRounds, adjustedTotalToPar, adjustedToday } = applyWeekendPenalty(livePlayer, latestStartedRoundIndex);
+
   return {
     name: livePlayer.name,
-    totalToPar: livePlayer.totalToPar,
-    today: livePlayer.today,
+    totalToPar: adjustedTotalToPar,
+    today: adjustedToday,
     thru: livePlayer.thru,
-    rounds: livePlayer.rounds,
+    rounds: adjustedRounds,
     status: livePlayer.status,
     countingTowardBestFour: false,
   };
@@ -66,7 +104,7 @@ function buildRosterGolfer(pickName: string, livePlayer?: NormalizedGolfer): Ros
 
 function getEligibleGolfers(golfers: RosterGolferResponseItem[]): RosterGolferResponseItem[] {
   return golfers
-    .filter((golfer) => golfer.status !== "wd" && golfer.totalToPar !== null)
+    .filter((golfer) => golfer.totalToPar !== null)
     .sort((left, right) => compareScoresAscending(left.totalToPar, right.totalToPar));
 }
 
@@ -76,10 +114,6 @@ function calculateGraphPoints(golfers: RosterGolferResponseItem[]): GraphSeriesI
   for (let roundIndex = 0; roundIndex < 4; roundIndex += 1) {
     const roundCandidates = golfers
       .map((golfer) => {
-        if (golfer.status === "wd") {
-          return null;
-        }
-
         if (golfer.rounds[roundIndex] === null) {
           return null;
         }
@@ -130,8 +164,12 @@ function getLatestStartedRoundIndex(liveData: NormalizedTournamentData): number 
   return latestStartedRoundIndex;
 }
 
-function buildScoredParticipant(participant: ParticipantPickSet, golferLookup: Map<string, NormalizedGolfer>): Omit<ScoredParticipant, "rank" | "movement"> {
-  const golfers = participant.golfers.map((pickName) => buildRosterGolfer(pickName, golferLookup.get(toLookupKey(pickName))));
+function buildScoredParticipant(
+  participant: ParticipantPickSet,
+  golferLookup: Map<string, NormalizedGolfer>,
+  latestStartedRoundIndex: number,
+): Omit<ScoredParticipant, "rank" | "movement"> {
+  const golfers = participant.golfers.map((pickName) => buildRosterGolfer(pickName, latestStartedRoundIndex, golferLookup.get(toLookupKey(pickName))));
   const bestFour = getEligibleGolfers(golfers).slice(0, 4);
   const bestFourKeys = new Set(bestFour.map((golfer) => toLookupKey(golfer.name)));
 
@@ -180,7 +218,7 @@ export function buildLiveScoresResponse(
   const golferLookup = new Map(liveData.players.map((player) => [toLookupKey(player.name), player]));
   const latestStartedRoundIndex = getLatestStartedRoundIndex(liveData);
   const rankedParticipants = rankParticipants(
-    participantPicks.map((participant) => buildScoredParticipant(participant, golferLookup)),
+    participantPicks.map((participant) => buildScoredParticipant(participant, golferLookup, latestStartedRoundIndex)),
   );
 
   return {

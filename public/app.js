@@ -473,11 +473,26 @@ function renderGraph(graphSeries, rosters) {
   const currentRound = getCurrentRoundFromRosters(rosters);
 
   const datasets = graphSeries.map((series, index) => {
-    const totalPoints = Math.max(series.points.length - 1, 1);
-    const data = series.points.map((point, pointIndex) => ({
-      x: pointIndex === 0 ? 0 : (pointIndex / totalPoints) * currentRound,
-      y: point.value,
-    }));
+    const roundPoints = series.points.filter((point) => /^Round\s+\d+$/i.test(point.label));
+    const snapshotPoints = series.points.filter((point) => point.label !== "Start" && !/^Round\s+\d+$/i.test(point.label));
+    const liveSegmentStart = Math.max(currentRound - 1, 0);
+    const snapshotCount = Math.max(snapshotPoints.length, 1);
+
+    const data = series.points.map((point) => {
+      if (point.label === "Start") {
+        return { x: 0, y: point.value };
+      }
+
+      const roundMatch = point.label.match(/^Round\s+(\d+)$/i);
+      if (roundMatch) {
+        return { x: Number(roundMatch[1]), y: point.value };
+      }
+
+      const snapshotIndex = snapshotPoints.findIndex((entry) => entry.label === point.label && entry.value === point.value);
+      const spreadIndex = snapshotIndex >= 0 ? snapshotIndex + 1 : snapshotCount;
+      const x = liveSegmentStart + (spreadIndex / snapshotCount);
+      return { x, y: point.value };
+    });
 
     return {
       label: series.name,

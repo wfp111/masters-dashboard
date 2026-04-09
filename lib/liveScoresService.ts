@@ -15,12 +15,14 @@ let graphHistoryLoaded = false;
 interface HistorySnapshot {
   key: string;
   label: string;
+  round: number;
   values: Map<string, number | null>;
 }
 
 interface StoredHistorySnapshot {
   key: string;
   label: string;
+  round: number;
   values: Record<string, number | null>;
 }
 
@@ -73,6 +75,16 @@ function buildSnapshotKey(payload: LiveScoresResponse): string {
   return payload.standings
     .map((entry) => `${entry.name}:${entry.bestFourTotal ?? "null"}:${entry.today ?? "null"}:${entry.rank}`)
     .join("|");
+}
+
+function getCurrentRoundFromPayload(payload: LiveScoresResponse): number {
+  const firstSeries = payload.graphSeries[0];
+  if (!firstSeries?.points?.length) {
+    return 1;
+  }
+
+  const roundCount = Math.max(firstSeries.points.length - 1, 1);
+  return Math.min(roundCount, 4);
 }
 
 function collapseDuplicateSnapshots(snapshots: HistorySnapshot[]): HistorySnapshot[] {
@@ -133,6 +145,7 @@ async function persistGraphHistory(): Promise<void> {
         snapshots.map((snapshot) => ({
           key: snapshot.key,
           label: snapshot.label,
+          round: snapshot.round,
           values: Object.fromEntries(snapshot.values),
         })),
       ]),
@@ -150,17 +163,20 @@ async function applyGraphHistory(payload: LiveScoresResponse, mode: "mock" | "va
   const historyKey = getHistoryKey(mode, payload.tournament);
   const history = graphHistoryByMode.get(historyKey) ?? [];
   const snapshotKey = buildSnapshotKey(payload);
+  const currentRound = getCurrentRoundFromPayload(payload);
 
   if (history.length === 0 || history[history.length - 1]?.key !== snapshotKey) {
     history.push({
       key: snapshotKey,
       label: formatHistoryLabel(payload.updatedAt, history.length),
+      round: currentRound,
       values: new Map(payload.standings.map((entry) => [entry.name, entry.bestFourTotal])),
     });
   } else {
     history[history.length - 1] = {
       key: snapshotKey,
       label: formatHistoryLabel(payload.updatedAt, history.length - 1),
+      round: currentRound,
       values: new Map(payload.standings.map((entry) => [entry.name, entry.bestFourTotal])),
     };
   }
@@ -171,16 +187,20 @@ async function applyGraphHistory(payload: LiveScoresResponse, mode: "mock" | "va
 
   return {
     ...payload,
-    graphSeries: payload.standings.map((entry) => ({
-      name: entry.name,
-      points: [
-        { label: "Start", value: 0 },
-        ...trimmedHistory.map((snapshot) => ({
+    graphSeries: payload.graphSeries.map((series) => {
+      const completedRoundPoints = series.points.filter((point) => point.label === "Start" || /^Round\s+\d+$/i.test(point.label)).slice(0, Math.max(currentRound, 1));
+      const currentRoundSnapshots = trimmedHistory
+        .filter((snapshot) => snapshot.round === currentRound)
+        .map((snapshot) => ({
           label: snapshot.label,
-          value: snapshot.values.get(entry.name) ?? null,
-        })),
-      ],
-    })),
+          value: snapshot.values.get(series.name) ?? null,
+        }));
+
+      return {
+        name: series.name,
+        points: [...completedRoundPoints, ...currentRoundSnapshots],
+      };
+    }),
   };
 }
 
