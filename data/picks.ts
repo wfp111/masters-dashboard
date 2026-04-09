@@ -29,7 +29,7 @@ const RAW_PARTICIPANT_PICKS: ParticipantPickSet[] = [
     name: "Matt",
     golfers: [
       "Scottie Scheffler",
-      "Collin Morikawa",
+      "Tommy Fleetwood",
       "Sam Burns",
       "Si Woo Kim",
       "Ben Griffin",
