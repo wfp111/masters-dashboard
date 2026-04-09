@@ -3,7 +3,7 @@ import { VALERO_PARTICIPANT_PICKS } from "../data/valeroPicks";
 import { buildLiveScoresResponse } from "./scoring";
 import { getGolfData } from "../providers/golfProvider";
 import { enrichPayloadWithHeadshots } from "./headshots";
-import type { LiveScoresResponse } from "./types";
+import type { LiveScoresResponse, PreviousStanding } from "./types";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -12,8 +12,10 @@ const MAX_GRAPH_HISTORY_POINTS = 36;
 const LIVE_CACHE_TTL_MS = 2 * 60 * 1000;
 const RUNTIME_DATA_DIR = process.env.NETLIFY ? path.join("/tmp", "roundtable-masters-pickem") : path.join(process.cwd(), "data");
 const GRAPH_HISTORY_FILE = path.join(RUNTIME_DATA_DIR, "graphHistory.json");
+const MOVEMENT_BASELINE_FILE = path.join(RUNTIME_DATA_DIR, "movementBaseline.json");
 let cachedLivePayload: { mode: "mock" | "valero" | "live"; payload: LiveScoresResponse; expiresAt: number } | null = null;
 let graphHistoryLoaded = false;
+let movementBaselineLoaded = false;
 
 interface HistorySnapshot {
   key: string;
@@ -30,6 +32,7 @@ interface StoredHistorySnapshot {
 }
 
 const graphHistoryByMode = new Map<string, HistorySnapshot[]>();
+const movementBaselineByKey = new Map<string, PreviousStanding[]>();
 
 function getFreshCachedPayload(mode: "mock" | "valero" | "live"): LiveScoresResponse | null {
   if (!cachedLivePayload) {
@@ -80,6 +83,21 @@ function getValeroLiveConfig() {
 
 function getHistoryKey(mode: "mock" | "valero" | "live", tournament: string): string {
   return `${mode}:${tournament}`;
+}
+
+function getMovementDateKey(updatedAt: string): string {
+  const date = updatedAt ? new Date(updatedAt) : new Date();
+
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(Number.isNaN(date.getTime()) ? new Date() : date);
+}
+
+function getMovementBaselineKey(mode: "mock" | "valero" | "live", tournament: string, updatedAt: string): string {
+  return `${mode}:${tournament}:${getMovementDateKey(updatedAt)}`;
 }
 
 function formatHistoryLabel(updatedAt: string, historyLength: number): string {
@@ -184,6 +202,66 @@ async function persistGraphHistory(): Promise<void> {
   }
 }
 
+async function ensureMovementBaselineLoaded(): Promise<void> {
+  if (movementBaselineLoaded) {
+    return;
+  }
+
+  movementBaselineLoaded = true;
+
+  try {
+    const raw = await readFile(MOVEMENT_BASELINE_FILE, "utf8");
+    const parsed = JSON.parse(raw) as Record<string, PreviousStanding[]>;
+
+    for (const [baselineKey, standings] of Object.entries(parsed)) {
+      movementBaselineByKey.set(baselineKey, standings);
+    }
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException)?.code;
+    if (code !== "ENOENT") {
+      console.warn("[liveScoresService] Unable to load movement baseline cache.", error);
+    }
+  }
+}
+
+async function persistMovementBaseline(): Promise<void> {
+  try {
+    await mkdir(path.dirname(MOVEMENT_BASELINE_FILE), { recursive: true });
+    await writeFile(
+      MOVEMENT_BASELINE_FILE,
+      JSON.stringify(Object.fromEntries(movementBaselineByKey), null, 2),
+      "utf8",
+    );
+  } catch (error) {
+    console.warn("[liveScoresService] Unable to persist movement baseline cache.", error);
+  }
+}
+
+async function getMovementBaseline(
+  mode: "mock" | "valero" | "live",
+  tournament: string,
+  updatedAt: string,
+  participantNames: string[],
+): Promise<PreviousStanding[]> {
+  await ensureMovementBaselineLoaded();
+
+  const baselineKey = getMovementBaselineKey(mode, tournament, updatedAt);
+  const existingBaseline = movementBaselineByKey.get(baselineKey);
+
+  if (existingBaseline?.length) {
+    return existingBaseline;
+  }
+
+  const baseline = participantNames.map((name, index) => ({
+    name,
+    rank: index + 1,
+  }));
+
+  movementBaselineByKey.set(baselineKey, baseline);
+  await persistMovementBaseline();
+  return baseline;
+}
+
 async function applyGraphHistory(payload: LiveScoresResponse, mode: "mock" | "valero" | "live"): Promise<LiveScoresResponse> {
   await ensureGraphHistoryLoaded();
 
@@ -231,6 +309,22 @@ async function applyGraphHistory(payload: LiveScoresResponse, mode: "mock" | "va
   };
 }
 
+async function buildEnrichedPayload(
+  liveData: Awaited<ReturnType<typeof getGolfData>>,
+  picks: typeof PARTICIPANT_PICKS,
+  mode: "mock" | "valero" | "live",
+): Promise<LiveScoresResponse> {
+  const movementBaseline = await getMovementBaseline(
+    mode,
+    liveData.tournament,
+    liveData.updatedAt,
+    picks.map((participant) => participant.name),
+  );
+
+  const payload = buildLiveScoresResponse(liveData, picks, movementBaseline);
+  return applyGraphHistory(await enrichPayloadWithHeadshots(payload), mode);
+}
+
 export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
   const mode = getConfiguredMode();
   const picks = getConfiguredPicks(mode);
@@ -247,7 +341,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
       tournamentName: "Masters Tournament",
       seedPrefix: "masters",
     });
-    const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(mockData, picks)), mode);
+    const payload = await buildEnrichedPayload(mockData, picks, mode);
     lastValidPayload = payload;
     setFreshCachedPayload(mode, payload);
     return payload;
@@ -264,7 +358,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
           tournamentId: valeroLiveConfig.tournamentId,
           baseUrl: valeroLiveConfig.baseUrl,
         });
-        const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(liveValeroData, picks)), mode);
+        const payload = await buildEnrichedPayload(liveValeroData, picks, mode);
         lastValidPayload = payload;
         setFreshCachedPayload(mode, payload);
         return payload;
@@ -279,7 +373,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
       tournamentName: "Valero Texas Open",
       seedPrefix: "valero",
     });
-    const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(practiceData, picks)), mode);
+    const payload = await buildEnrichedPayload(practiceData, picks, mode);
     lastValidPayload = payload;
     setFreshCachedPayload(mode, payload);
     return payload;
@@ -287,7 +381,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
 
   try {
     const liveData = await getGolfData({ mode: "live", picks });
-    const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(liveData, picks)), mode);
+    const payload = await buildEnrichedPayload(liveData, picks, mode);
     lastValidPayload = payload;
     setFreshCachedPayload(mode, payload);
     return payload;
@@ -309,7 +403,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
       tournamentName: "Masters Tournament",
       seedPrefix: "masters",
     });
-    const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(mockData, PARTICIPANT_PICKS)), "mock");
+    const payload = await buildEnrichedPayload(mockData, PARTICIPANT_PICKS, "mock");
     lastValidPayload = payload;
     setFreshCachedPayload("mock", payload);
     return payload;

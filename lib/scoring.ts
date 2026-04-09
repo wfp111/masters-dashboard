@@ -1,10 +1,10 @@
-import { PREVIOUS_STANDINGS } from "../data/previousStandings";
 import type {
   GraphSeriesItem,
   LiveScoresResponse,
   NormalizedGolfer,
   NormalizedTournamentData,
   ParticipantPickSet,
+  PreviousStanding,
   RosterGolferResponseItem,
 } from "./types";
 
@@ -200,7 +200,14 @@ function buildScoredParticipant(
 }
 
 function rankParticipants(participants: Array<Omit<ScoredParticipant, "rank" | "movement">>): ScoredParticipant[] {
-  const previousRankMap = new Map(PREVIOUS_STANDINGS.map((entry) => [toLookupKey(entry.name), entry.rank]));
+  return rankParticipantsWithBaseline(participants, []);
+}
+
+function rankParticipantsWithBaseline(
+  participants: Array<Omit<ScoredParticipant, "rank" | "movement">>,
+  previousStandings: PreviousStanding[],
+): ScoredParticipant[] {
+  const previousRankMap = new Map(previousStandings.map((entry) => [toLookupKey(entry.name), entry.rank]));
 
   const sorted = [...participants].sort((left, right) => {
     const byScore = compareScoresAscending(left.bestFourTotal, right.bestFourTotal);
@@ -227,11 +234,13 @@ function rankParticipants(participants: Array<Omit<ScoredParticipant, "rank" | "
 export function buildLiveScoresResponse(
   liveData: NormalizedTournamentData,
   participantPicks: ParticipantPickSet[],
+  previousStandings: PreviousStanding[] = [],
 ): LiveScoresResponse {
   const golferLookup = new Map(liveData.players.map((player) => [toLookupKey(player.name), player]));
   const latestStartedRoundIndex = getLatestStartedRoundIndex(liveData);
-  const rankedParticipants = rankParticipants(
+  const rankedParticipants = rankParticipantsWithBaseline(
     participantPicks.map((participant) => buildScoredParticipant(participant, golferLookup, latestStartedRoundIndex)),
+    previousStandings,
   );
 
   return {
