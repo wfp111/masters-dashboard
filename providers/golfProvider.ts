@@ -430,18 +430,6 @@ function deriveThruFromRounds(player: UnknownRecord): string {
       return rightSequence - leftSequence;
     });
 
-  const newestRound = roundSource[0];
-  if (newestRound) {
-    const latestThru = getNumber(getRecordValue(newestRound, ["thru", "holes_completed"])) ?? 0;
-    const latestStrokes = getNumber(getRecordValue(newestRound, ["strokes", "total_strokes"])) ?? 0;
-    const latestScore = getNumber(getRecordValue(newestRound, ["score", "score_to_par", "to_par"])) ?? 0;
-    const latestSequence = getNumber(getRecordValue(newestRound, ["number", "round", "sequence"])) ?? 0;
-
-    if (latestSequence > 1 && latestThru === 0 && latestStrokes === 0 && latestScore === 0) {
-      return "";
-    }
-  }
-
   const latestStartedRound = roundSource.find((round) => {
     const thru = getNumber(getRecordValue(round, ["thru", "holes_completed"])) ?? 0;
     const strokes = getNumber(getRecordValue(round, ["strokes", "total_strokes"])) ?? 0;
@@ -453,6 +441,9 @@ function deriveThruFromRounds(player: UnknownRecord): string {
     return "";
   }
 
+  const latestStartedSequence = getNumber(
+    getRecordValue(latestStartedRound, ["number", "round", "sequence"]),
+  ) ?? 0;
   const thru = getNumber(getRecordValue(latestStartedRound, ["thru", "holes_completed"]));
   if (thru === 18) {
     return "F";
@@ -460,6 +451,10 @@ function deriveThruFromRounds(player: UnknownRecord): string {
 
   if (thru !== null && thru > 0) {
     return String(thru);
+  }
+
+  if (latestStartedSequence >= 1) {
+    return "F";
   }
 
   return "F";
