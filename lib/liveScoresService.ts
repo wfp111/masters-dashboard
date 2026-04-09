@@ -9,7 +9,10 @@ import path from "node:path";
 
 let lastValidPayload: LiveScoresResponse | null = null;
 const MAX_GRAPH_HISTORY_POINTS = 36;
-const GRAPH_HISTORY_FILE = path.join(process.cwd(), "data", "graphHistory.json");
+const LIVE_CACHE_TTL_MS = 2 * 60 * 1000;
+const RUNTIME_DATA_DIR = process.env.NETLIFY ? path.join("/tmp", "roundtable-masters-pickem") : path.join(process.cwd(), "data");
+const GRAPH_HISTORY_FILE = path.join(RUNTIME_DATA_DIR, "graphHistory.json");
+let cachedLivePayload: { mode: "mock" | "valero" | "live"; payload: LiveScoresResponse; expiresAt: number } | null = null;
 let graphHistoryLoaded = false;
 
 interface HistorySnapshot {
@@ -27,6 +30,30 @@ interface StoredHistorySnapshot {
 }
 
 const graphHistoryByMode = new Map<string, HistorySnapshot[]>();
+
+function getFreshCachedPayload(mode: "mock" | "valero" | "live"): LiveScoresResponse | null {
+  if (!cachedLivePayload) {
+    return null;
+  }
+
+  if (cachedLivePayload.mode !== mode) {
+    return null;
+  }
+
+  if (Date.now() > cachedLivePayload.expiresAt) {
+    return null;
+  }
+
+  return cachedLivePayload.payload;
+}
+
+function setFreshCachedPayload(mode: "mock" | "valero" | "live", payload: LiveScoresResponse): void {
+  cachedLivePayload = {
+    mode,
+    payload,
+    expiresAt: Date.now() + LIVE_CACHE_TTL_MS,
+  };
+}
 
 function getConfiguredMode(): "mock" | "valero" | "live" {
   if (process.env.GOLF_DATA_MODE === "valero") {
@@ -208,6 +235,11 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
   const mode = getConfiguredMode();
   const picks = getConfiguredPicks(mode);
 
+  const freshCachedPayload = getFreshCachedPayload(mode);
+  if (freshCachedPayload) {
+    return freshCachedPayload;
+  }
+
   if (mode === "mock") {
     const mockData = await getGolfData({
       mode: "mock",
@@ -217,6 +249,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
     });
     const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(mockData, picks)), mode);
     lastValidPayload = payload;
+    setFreshCachedPayload(mode, payload);
     return payload;
   }
 
@@ -233,6 +266,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
         });
         const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(liveValeroData, picks)), mode);
         lastValidPayload = payload;
+        setFreshCachedPayload(mode, payload);
         return payload;
       } catch (error) {
         console.warn("[liveScoresService] Valero live feed failed. Falling back to Valero practice data.", error);
@@ -247,6 +281,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
     });
     const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(practiceData, picks)), mode);
     lastValidPayload = payload;
+    setFreshCachedPayload(mode, payload);
     return payload;
   }
 
@@ -254,9 +289,15 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
     const liveData = await getGolfData({ mode: "live", picks });
     const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(liveData, picks)), mode);
     lastValidPayload = payload;
+    setFreshCachedPayload(mode, payload);
     return payload;
   } catch (error) {
     console.warn("[liveScoresService] Live golf provider failed. Falling back.", error);
+
+    const staleCachedPayload = cachedLivePayload?.mode === mode ? cachedLivePayload.payload : null;
+    if (staleCachedPayload) {
+      return staleCachedPayload;
+    }
 
     if (lastValidPayload) {
       return lastValidPayload;
@@ -270,6 +311,7 @@ export async function getLiveScoresPayload(): Promise<LiveScoresResponse> {
     });
     const payload = await applyGraphHistory(await enrichPayloadWithHeadshots(buildLiveScoresResponse(mockData, PARTICIPANT_PICKS)), "mock");
     lastValidPayload = payload;
+    setFreshCachedPayload("mock", payload);
     return payload;
   }
 }

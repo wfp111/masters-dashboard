@@ -8,7 +8,7 @@ export const handler: Handler = async () => {
     return {
       statusCode: 200,
       headers: {
-        "cache-control": "no-store",
+        "cache-control": "public, max-age=30, s-maxage=120, stale-while-revalidate=120",
         "content-type": "application/json; charset=utf-8",
       },
       body: JSON.stringify(payload),
