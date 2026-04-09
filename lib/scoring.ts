@@ -22,8 +22,21 @@ interface ScoredParticipant {
   graphPoints: GraphSeriesItem["points"];
 }
 
+const PLAYER_NAME_ALIASES: Record<string, string> = {
+  "matthew mccarty": "matt mccarty",
+};
+
 function toLookupKey(value: string): string {
-  return value.trim().toLowerCase();
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return PLAYER_NAME_ALIASES[normalized] ?? normalized;
 }
 
 function compareScoresAscending(a: number | null, b: number | null): number {
