@@ -514,7 +514,7 @@ function renderGraph(graphSeries, rosters) {
     const liveSegmentStart = Math.max(currentRound - 1, 0);
     const snapshotCount = Math.max(snapshotPoints.length, 1);
 
-    const data = series.points.map((point) => {
+    const basePoints = series.points.map((point) => {
       if (point.label === "Start") {
         return { x: 0, y: point.value };
       }
@@ -530,13 +530,34 @@ function renderGraph(graphSeries, rosters) {
       return { x, y: point.value };
     });
 
+    const data = [];
+
+    for (let pointIndex = 0; pointIndex < basePoints.length; pointIndex += 1) {
+      const currentPoint = basePoints[pointIndex];
+      const previousPoint = data[data.length - 1];
+
+      if (previousPoint && currentPoint.y !== null && previousPoint.y !== null) {
+        const deltaX = currentPoint.x - previousPoint.x;
+        const deltaY = currentPoint.y - previousPoint.y;
+
+        if (deltaX > 0.2 && deltaY !== 0) {
+          data.push({
+            x: previousPoint.x + deltaX * 0.45,
+            y: previousPoint.y + deltaY * 0.35,
+          });
+        }
+      }
+
+      data.push(currentPoint);
+    }
+
     return {
       label: series.name,
       data,
       borderColor: CHART_COLORS[index % CHART_COLORS.length],
       backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
       borderWidth: 2.5,
-      tension: 0.86,
+      tension: 0.92,
       pointRadius: 0,
       pointHoverRadius: 0,
       pointHitRadius: 10,
